@@ -30,13 +30,39 @@ public struct RuleEngine {
         }
     }
 
-    /// All rules built into ClaudeFleetCore. Phase A includes the 5 starter
-    /// rules. Phases B onwards extend this list.
+    /// All rules built into ClaudeFleetCore.
     public static let defaultRules: [any LintRule] = [
+        // Skills
         S001_SkillMDExists(),
         S002_FrontmatterParses(),
         S003_SkillNameValid(),
         S004_DescriptionValid(),
+        S005_DescriptionThirdPerson(),
+        S006_DescriptionWhenToUse(),
+        S007_BodyLines(),
+        S008_ReferenceDepth(),
+        S009_BackslashPaths(),
+        S010_GerundForm(),
+        // Agents
         A001_NameAndDescriptionPresent(),
+        A002_NameKebabCase(),
+        A003_ModelValid(),
+        A004_PermissionMode(),
+        A005_PluginNoLifecycle(),
+        A006_ReadOnlyToolsNarrowed(),
+        A007_DescriptionUseCue(),
+        // Cross-cutting
+        C001_NoSecrets(),
+        C002_UniqueNames(),
+        C003_MCPRefForm(),
+        C004_HookFilesExist(),
+        C005_SkillsRefsExist(),
+        // Redundancy / dialect drift (R001–R005)
+        RedundancyAnalyzer(),
+    ]
+
+    /// Just the redundancy detectors, for `anvil redundancy`.
+    public static let redundancyOnly: [any LintRule] = [
+        RedundancyAnalyzer(),
     ]
 }
