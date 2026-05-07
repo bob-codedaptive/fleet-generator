@@ -7,9 +7,163 @@ struct Anvil: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "anvil",
         abstract: "Parse, lint, edit, and deploy Claude fleet (.claude/) libraries.",
-        version: "0.3.0",
-        subcommands: [Lint.self, Ls.self, Show.self, Diff.self, Redundancy.self, Edit.self]
+        version: "0.4.0",
+        subcommands: [Lint.self, Ls.self, Show.self, Diff.self, Redundancy.self, Edit.self, Deploy.self, Sync.self, Manifest.self]
     )
+}
+
+// MARK: - deploy
+
+struct Deploy: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Copy one agent or skill from a source library to a target library."
+    )
+
+    @Argument(help: "Source artifact: <source-library>/agents/<name> or <source-library>/skills/<name>.")
+    var source: String
+
+    @Argument(help: "Target library path.")
+    var target: String
+
+    @Option(name: .long, help: "Conflict mode: mirror | additive | prompt.")
+    var mode: String = "additive"
+
+    @Flag(name: .long, help: "Mirror mode only: overwrite even when local edits drifted from the recorded source hash.")
+    var force: Bool = false
+
+    func run() throws {
+        let mode = parseMode(mode)
+        let (srcRoot, kind, name) = try splitSource(source)
+        let tgtRoot = expand(target)
+        do {
+            let result = try Deployer.deploy(
+                kind: kind, name: name,
+                sourceLibraryRoot: srcRoot, targetLibraryRoot: tgtRoot,
+                mode: mode, force: force
+            )
+            for r in result.records {
+                print("\(r.action.rawValue.padding(toLength: 18, withPad: " ", startingAt: 0))  \(r.key)\(r.detail.map { " — \($0)" } ?? "")")
+            }
+        } catch DeployError.driftWithoutForce(let key, let recordedHash, let currentHash) {
+            FileHandle.standardError.write(Data("anvil deploy: drift detected on '\(key)'\n  manifest source_hash: \(recordedHash)\n  current target hash:  \(currentHash)\nPass --force to overwrite the drifted target.\n".utf8))
+            throw ExitCode(3)
+        } catch DeployError.conflictNeedsHumanResolution(let key) {
+            FileHandle.standardError.write(Data("anvil deploy: conflict on '\(key)' (prompt mode requires interactive resolution).\n".utf8))
+            throw ExitCode(3)
+        }
+    }
+}
+
+// MARK: - sync
+
+struct Sync: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Copy every agent and skill from a source library to a target."
+    )
+
+    @Argument(help: "Source library path.")
+    var source: String
+
+    @Argument(help: "Target library path.")
+    var target: String
+
+    @Option(name: .long, help: "Conflict mode: mirror | additive | prompt.")
+    var mode: String = "additive"
+
+    @Flag(name: .long, help: "Mirror mode only: overwrite even when local edits drifted from the recorded source hash.")
+    var force: Bool = false
+
+    func run() throws {
+        let mode = parseMode(mode)
+        let result = try Deployer.sync(
+            sourceLibraryRoot: expand(source),
+            targetLibraryRoot: expand(target),
+            mode: mode, force: force
+        )
+        var copied = 0, skipped = 0, conflicts = 0
+        for r in result.records {
+            print("\(r.action.rawValue.padding(toLength: 18, withPad: " ", startingAt: 0))  \(r.key)")
+            switch r.action {
+            case .copied: copied += 1
+            case .skippedExisting, .skippedNoChange, .driftWarning: skipped += 1
+            case .conflict: conflicts += 1
+            }
+        }
+        print("\nsync: \(copied) copied, \(skipped) skipped, \(conflicts) conflict(s).")
+    }
+}
+
+// MARK: - manifest
+
+struct Manifest: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Show or check a target library's .anvil-manifest.json."
+    )
+
+    @Argument(help: "Target library path.")
+    var target: String
+
+    @Flag(name: .long, help: "Detect drift between manifest source_hash and current target contents.")
+    var check: Bool = false
+
+    func run() throws {
+        let root = expand(target)
+        if check {
+            let report = try Deployer.driftReport(targetLibraryRoot: root)
+            if report.isEmpty {
+                print("(no manifest at \(root.path))")
+                return
+            }
+            var drifted = 0
+            for entry in report {
+                let badge: String
+                switch entry.status {
+                case .clean:    badge = "OK     "
+                case .drifted:  badge = "DRIFTED"; drifted += 1
+                case .missing:  badge = "MISSING"; drifted += 1
+                }
+                print("[\(badge)] \(entry.key)")
+                if entry.status == .drifted, let cur = entry.currentTargetHash {
+                    print("           manifest: \(entry.recordedSourceHash)")
+                    print("           current:  \(cur)")
+                }
+            }
+            if drifted > 0 { throw ExitCode(1) }
+            return
+        }
+
+        guard let m = try AnvilManifest.load(from: root) else {
+            print("(no manifest at \(root.path))")
+            return
+        }
+        print("version: \(m.version)")
+        print("artifacts (\(m.artifacts.count)):")
+        for (key, rec) in m.artifacts.sorted(by: { $0.key < $1.key }) {
+            print("  \(key)")
+            print("    source_library: \(rec.sourceLibrary)")
+            print("    source_hash:    \(rec.sourceHash)")
+            print("    deployed_at:    \(rec.deployedAt)")
+            print("    anvil_version:  \(rec.anvilVersion)")
+        }
+    }
+}
+
+func parseMode(_ s: String) -> DeployMode {
+    DeployMode(rawValue: s.lowercased()) ?? .additive
+}
+
+func splitSource(_ raw: String) throws -> (URL, Deployer.ArtifactKind, String) {
+    let url = expand(raw)
+    let last = url.lastPathComponent
+    let parent = url.deletingLastPathComponent()
+    if parent.lastPathComponent == "agents" {
+        return (parent.deletingLastPathComponent(), .agent, (last as NSString).deletingPathExtension)
+    }
+    if parent.lastPathComponent == "skills" {
+        return (parent.deletingLastPathComponent(), .skill, last)
+    }
+    FileHandle.standardError.write(Data("anvil deploy: source must be of form <library>/agents/<name> or <library>/skills/<name>.\n".utf8))
+    throw ExitCode(2)
 }
 
 // MARK: - edit
