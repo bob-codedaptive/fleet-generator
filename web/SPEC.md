@@ -22,7 +22,7 @@ All three converge on the same `downloadZip()` → in-browser zip writer.
 | 1 | Project | `name`, `desc`, `root` folder | name + desc required |
 | 2 | Repos | List of `{name, branch, path}` | ≥1 repo with name+path |
 | 3 | Vocabulary | Three slash-command words: `scope`/`draft`/`submit` (renameable) | All required; rejects ~60 reserved Claude built-ins (`/plan`, `/clear`, `/init`, `/agents`, `/skills`, `/hooks`, `/loop`, `/schedule`, `/security-review`, `/ultrareview`, etc.) |
-| 4 | Team | Per agent: enabled?, name (≤64), persona (≤1024) | Required agents enabled with names |
+| 4 | Team | Per agent: enabled?, name (≤64), persona (≤874, sample shown as greyed placeholder, "Use sample persona" button), personality (≤150, dropdown of 8 canned options + editable textarea, optional), Does (one item per line, sample as placeholder, "Use sample" button), Doesn't (same) | Required agents enabled with names |
 | 5 | Preferences | Verbosity slider (terse/normal/detailed), uncertainty mode (ask / guess+flag / always-ask), emoji on/off, optional CLI skills, optional hooks, optional chat skills | None |
 | 6 | Preview | Stats grid (agent/skill/hook counts) + monospace tree of the zip | None |
 | 7 | Download | Big download button + post-download next-steps card | None |
@@ -55,7 +55,7 @@ state = {
 | Doc Writer | Linus | — | — |
 | Security Reviewer | Dogbert | — | ✓ |
 | Accessibility Reviewer | Cathy | — | ✓ |
-| Performance Reviewer | Opus | — | ✓ |
+| Performance Reviewer | Odie | — | ✓ |
 
 ## Output structure
 

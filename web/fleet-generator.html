@@ -27,7 +27,12 @@
 
   <div class="step active" id="step0">
     <h2 class="text-2xl font-bold text-stone-800 mb-2">Choose your path</h2>
-    <p class="text-stone-500 mb-6">Three ways to install. Pick one.</p>
+    <p class="text-stone-500 mb-4">Three ways to install. Pick one.</p>
+
+    <details open class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-sm">
+      <summary class="cursor-pointer font-medium text-amber-900">Before you start — quick checklist (any path)</summary>
+      <div id="prereqList" class="space-y-2 mt-3"></div>
+    </details>
 
     <div class="space-y-4 mb-6">
 
@@ -83,11 +88,6 @@
       </div>
 
     </div>
-
-    <details class="bg-stone-50 border border-stone-200 rounded-xl p-4 text-sm">
-      <summary class="cursor-pointer font-medium text-stone-700">Before you start — quick checklist (any path)</summary>
-      <div id="prereqList" class="space-y-2 mt-3"></div>
-    </details>
   </div>
 
   <div class="step" id="step1">
@@ -330,7 +330,7 @@ const ROLES = [
     notDoes: ["Modify code","Make design decisions"],
     skills: ["self-review"],
     descLine: "Accessibility reviewer. Read-only. Audits UI changes against WCAG — screen-reader support, keyboard navigation, color contrast, touch targets, semantic structure. Use PROACTIVELY for any UI mission and any change that adds interactive elements." },
-  { key: 'perf', name: 'Opus', title: 'Performance Reviewer', required: false,
+  { key: 'perf', name: 'Odie', title: 'Performance Reviewer', required: false,
     persona: "Data-driven and precise. Identifies unnecessary allocations, N+1 queries, blocking calls, memory leaks. Quantifies impact. Distinguishes theoretical from practical concerns. Never optimizes prematurely.",
     role: "Performance reviewer for {{project}}. Identifies real bottlenecks, quantifies impact, never optimizes prematurely.",
     does: ["Identify unnecessary allocations, N+1 queries, blocking calls","Quantify impact","Distinguish theoretical from practical concerns"],
@@ -368,6 +368,19 @@ const UNCERTAINTY_OPTIONS = [
   { value: 'always-ask',   label: 'Always ask before any action',   short: 'Always ask before acting.' }
 ];
 
+// Canned personality flavors. ≤150 chars each. Picked from the Step 4 dropdown;
+// auto-fills the personality textarea where the user can edit further.
+const PERSONALITY_OPTIONS = [
+  "Dry and laconic. Few words, well chosen. Occasional sardonic aside.",
+  "Warm and encouraging. Frames feedback constructively. Curious about the work.",
+  "Direct and unsentimental. No softening. The call, plain.",
+  "Playful and witty. Light tone even when the work is heavy.",
+  "Pragmatic skeptic. Trusts evidence over claims. Asks for the data.",
+  "Old-school engineer. Skeptical of fashion. Lives by least surprise.",
+  "Quiet professional. Lets the work speak. Rare commentary, always pointed.",
+  "Patient teacher. Explains the why before the how."
+];
+
 // ============================================================================
 // STATE
 // ============================================================================
@@ -384,7 +397,22 @@ const state = {
   workshopMode: false,  // when true, ship as fleet-generator workshop
   workshopPayload: null // { generatorHtml, guideHtml }
 };
-ROLES.forEach(r => { state.agents[r.key] = { enabled: r.required, name: r.name, persona: r.persona }; });
+// Per-agent state. Persona / personality / does / notDoes start blank — the
+// UI shows the role's sample text as a greyed-in placeholder, and "Use sample"
+// buttons (or the personality dropdown) populate the field on demand. genAgent
+// falls back to the role sample when persona/does/notDoes are blank, so empty
+// fields still produce a complete manifest. Personality is genuinely optional:
+// when blank, the manifest omits it entirely.
+ROLES.forEach(r => {
+  state.agents[r.key] = {
+    enabled: r.required,
+    name: r.name,
+    persona: '',
+    personality: '',
+    does: '',
+    notDoes: ''
+  };
+});
 
 // ============================================================================
 // HELPERS
@@ -4192,10 +4220,22 @@ function renderRefs(skillName, def) {
 // AGENT MANIFEST
 // ============================================================================
 
+// Parse a multi-line textarea ("one item per line") into a trimmed array of
+// non-blank entries. Empty input → empty array → caller falls back to the
+// role sample.
+function parseLines(s) {
+  return (s || '').split('\n').map(l => l.trim()).filter(Boolean);
+}
+
 function genAgent(role) {
   const a = state.agents[role.key];
   const name = a.name || role.name;
-  const persona = a.persona || role.persona;
+  const persona = (a.persona && a.persona.trim()) || role.persona;
+  const personality = (a.personality || '').trim();
+  const doesList    = parseLines(a.does);
+  const notDoesList = parseLines(a.notDoes);
+  const does    = doesList.length    ? doesList    : role.does;
+  const notDoes = notDoesList.length ? notDoesList : role.notDoes;
   const slug = kebab(name);
   const skills = role.skills || [];
 
@@ -4215,9 +4255,10 @@ function genAgent(role) {
   s += '---\n\n';
   s += `# ${name} — ${role.title}\n\n`;
   s += `**Persona:** ${persona}\n\n`;
+  if (personality) s += `**Personality:** ${personality}\n\n`;
   s += `## Role\n\n${sub(role.role)}\n\n`;
-  s += `## What You Do\n\n${role.does.map(d=>'- '+sub(d)).join('\n')}\n\n`;
-  s += `## What You Do NOT Do\n\n${role.notDoes.map(d=>'- '+d).join('\n')}\n\n`;
+  s += `## What You Do\n\n${does.map(d=>'- '+sub(d)).join('\n')}\n\n`;
+  s += `## What You Do NOT Do\n\n${notDoes.map(d=>'- '+d).join('\n')}\n\n`;
   s += `## Skills you apply\n\n`;
   if (skills.length) {
     s += skills.map(k => `- \`${k}\` — auto-loads when relevant`).join('\n') + '\n\n';
@@ -5919,9 +5960,14 @@ function renderAgents() {
     const a = state.agents[role.key];
     const isOpen = a._open;
     const enabled = a.enabled;
-    const charCount = (a.persona || '').length;
-    const nameCount = (a.name || '').length;
+    const personaCount     = (a.persona     || '').length;
+    const personalityCount = (a.personality || '').length;
+    const doesCount        = (a.does        || '').length;
+    const notDoesCount     = (a.notDoes     || '').length;
+    const nameCount        = (a.name        || '').length;
     const lock = role.required ? '<span class="pill bg-amber-100 text-amber-700 ml-2">required</span>' : '';
+    const personalityOpts = PERSONALITY_OPTIONS.map(p =>
+      `<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
     return `
       <div class="bg-white rounded-xl border ${enabled ? 'border-amber-300' : 'border-stone-200'}">
         <div class="p-3 flex items-center justify-between">
@@ -5937,24 +5983,52 @@ function renderAgents() {
         </div>
         <div class="agent-details ${isOpen?'open':''} px-3 pb-4 border-t border-stone-100">
           <div class="pt-3 space-y-3">
+
             <div>
               <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Name</span><span class="text-stone-400">${nameCount}/64</span></label>
               <input value="${escHtml(a.name)}" maxlength="64" oninput="updateAgent('${role.key}','name',this.value)" class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
             </div>
+
             <div>
-              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Persona</span><span class="text-stone-400">${charCount}/1024</span></label>
-              <textarea maxlength="1024" rows="6" oninput="updateAgent('${role.key}','persona',this.value)" class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.persona)}</textarea>
-              <button onclick="resetPersona('${role.key}')" class="mt-1 text-xs text-amber-700 hover:underline">Use suggested persona</button>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Persona</span><span class="text-stone-400">${personaCount}/874</span></label>
+              <textarea maxlength="874" rows="6"
+                placeholder="${escHtml(role.persona)}"
+                oninput="updateAgent('${role.key}','persona',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.persona)}</textarea>
+              <button onclick="useSample('${role.key}','persona')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample persona</button>
             </div>
-            <details class="text-xs text-stone-500">
-              <summary class="cursor-pointer">What this role does</summary>
-              <div class="mt-2 space-y-1">
-                <div class="font-semibold text-stone-700">Does:</div>
-                <ul class="list-disc pl-5">${role.does.map(d=>`<li>${escHtml(d)}</li>`).join('')}</ul>
-                <div class="font-semibold text-stone-700 mt-2">Doesn't:</div>
-                <ul class="list-disc pl-5">${role.notDoes.map(d=>`<li>${escHtml(d)}</li>`).join('')}</ul>
-              </div>
-            </details>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Personality (optional)</span><span class="text-stone-400">${personalityCount}/150</span></label>
+              <select onchange="pickPersonality('${role.key}', this.value)"
+                class="w-full px-3 py-2 mb-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white">
+                <option value="">— pick a sample personality —</option>
+                ${personalityOpts}
+              </select>
+              <textarea maxlength="150" rows="2"
+                placeholder="Optional personality flavor — pick from the dropdown above, or type your own."
+                oninput="updateAgent('${role.key}','personality',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.personality)}</textarea>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>What you do (one per line)</span><span class="text-stone-400">${doesCount} chars</span></label>
+              <textarea rows="4"
+                placeholder="${escHtml(role.does.join('\n'))}"
+                oninput="updateAgent('${role.key}','does',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.does)}</textarea>
+              <button onclick="useSample('${role.key}','does')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample</button>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>What you do NOT (one per line)</span><span class="text-stone-400">${notDoesCount} chars</span></label>
+              <textarea rows="3"
+                placeholder="${escHtml(role.notDoes.join('\n'))}"
+                oninput="updateAgent('${role.key}','notDoes',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.notDoes)}</textarea>
+              <button onclick="useSample('${role.key}','notDoes')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample</button>
+            </div>
+
           </div>
         </div>
       </div>`;
@@ -5963,7 +6037,27 @@ function renderAgents() {
 function toggleAgentOpen(k){ state.agents[k]._open = !state.agents[k]._open; renderAgents(); }
 function toggleAgentEnabled(k){ const r = ROLES.find(x=>x.key===k); if(r.required) return; state.agents[k].enabled=!state.agents[k].enabled; renderAgents(); refreshNav(); }
 function updateAgent(k,f,v){ state.agents[k][f]=v; refreshNav(); }
-function resetPersona(k){ const r=ROLES.find(x=>x.key===k); state.agents[k].persona=r.persona; renderAgents(); refreshNav(); }
+// Generic "Use sample" handler. Copies the role's canned text into the
+// matching state field. For does/notDoes the canonical sample is an array;
+// it's joined with newlines so it renders cleanly in the multi-line textarea.
+function useSample(k, field) {
+  const r = ROLES.find(x => x.key === k);
+  let value = '';
+  if      (field === 'persona') value = r.persona;
+  else if (field === 'does')    value = r.does.join('\n');
+  else if (field === 'notDoes') value = r.notDoes.join('\n');
+  state.agents[k][field] = value;
+  state.agents[k]._open  = true;
+  renderAgents();
+  refreshNav();
+}
+function pickPersonality(k, val) {
+  if (!val) return;
+  state.agents[k].personality = val;
+  state.agents[k]._open = true;
+  renderAgents();
+  refreshNav();
+}
 
 function renderPrefs() {
   $('verbosityLabel').textContent = verbosityLine(state.prefs.verbosity);
