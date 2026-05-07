@@ -72,7 +72,7 @@ skill, but the short version is:
 4. **Post-flight** — Spawn Garfield (`garfield`) to review the diff against the
    mission spec. Fix CRITICAL findings; re-spawn until PASS.
 5. **Specialists on trigger** — Spawn Dogbert (`dogbert`) for security-touching
-   work, Cathy (`cathy`) for UI changes, Opus (`opus`) for hot paths.
+   work, Cathy (`cathy`) for UI changes, Odie (`odie`) for hot paths.
 6. **Doc updates** — User-facing behavior change → spawn Linus (`linus`).
 
 Spawning uses the Task tool with `subagent_type=<lowercase-name>`. Spawning

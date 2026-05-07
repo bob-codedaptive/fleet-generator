@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fleet Generator — Build Your Claude Agent Team</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   body { font-family: 'DM Sans', system-ui, sans-serif; }
   .step { display: none; }
@@ -15,34 +16,23 @@
   textarea { font-family: 'DM Sans', system-ui, sans-serif; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 </style>
-<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.inset-0{inset:0px}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.ml-6{margin-left:1.5rem}.mt-1{margin-top:0.25rem}.mt-3{margin-top:0.75rem}.mt-8{margin-top:2rem}.mt-0\.5{margin-top:0.125rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-4{height:1rem}.h-8{height:2rem}.h-9{height:2.25rem}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-4{width:1rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.cursor-pointer{cursor:pointer}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-md{border-radius:0.375rem}.border{border-width:1px}.border-2{border-width:2px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183 / var(--tw-border-opacity, 1))}.border-sky-300{--tw-border-opacity:1;border-color:rgb(125 211 252 / var(--tw-border-opacity, 1))}.border-stone-200{--tw-border-opacity:1;border-color:rgb(231 229 228 / var(--tw-border-opacity, 1))}.border-stone-300{--tw-border-opacity:1;border-color:rgb(214 211 209 / var(--tw-border-opacity, 1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-amber-600{--tw-bg-opacity:1;background-color:rgb(217 119 6 / var(--tw-bg-opacity, 1))}.bg-amber-700{--tw-bg-opacity:1;background-color:rgb(180 83 9 / var(--tw-bg-opacity, 1))}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-700{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226 / var(--tw-bg-opacity, 1))}.bg-sky-50{--tw-bg-opacity:1;background-color:rgb(240 249 255 / var(--tw-bg-opacity, 1))}.bg-sky-700{--tw-bg-opacity:1;background-color:rgb(3 105 161 / var(--tw-bg-opacity, 1))}.bg-stone-100{--tw-bg-opacity:1;background-color:rgb(245 245 244 / var(--tw-bg-opacity, 1))}.bg-stone-50{--tw-bg-opacity:1;background-color:rgb(250 250 249 / var(--tw-bg-opacity, 1))}.bg-stone-900{--tw-bg-opacity:1;background-color:rgb(28 25 23 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-2{padding-bottom:0.5rem}.pt-6{padding-top:1.5rem}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[10px\]{font-size:10px}.font-bold{font-weight:700}.font-medium{font-weight:500}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.tracking-\[0\.2em\]{letter-spacing:0.2em}.tracking-wider{letter-spacing:0.05em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-amber-900{--tw-text-opacity:1;color:rgb(120 53 15 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-900{--tw-text-opacity:1;color:rgb(6 78 59 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-sky-700{--tw-text-opacity:1;color:rgb(3 105 161 / var(--tw-text-opacity, 1))}.text-sky-900{--tw-text-opacity:1;color:rgb(12 74 110 / var(--tw-text-opacity, 1))}.text-stone-100{--tw-text-opacity:1;color:rgb(245 245 244 / var(--tw-text-opacity, 1))}.text-stone-400{--tw-text-opacity:1;color:rgb(168 162 158 / var(--tw-text-opacity, 1))}.text-stone-500{--tw-text-opacity:1;color:rgb(120 113 108 / var(--tw-text-opacity, 1))}.text-stone-700{--tw-text-opacity:1;color:rgb(68 64 60 / var(--tw-text-opacity, 1))}.text-stone-800{--tw-text-opacity:1;color:rgb(41 37 36 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-stone-300{--tw-text-opacity:1;color:rgb(214 211 209 / var(--tw-text-opacity, 1))}.accent-amber-600{accent-color:#d97706}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:border-amber-400:hover{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.hover\:bg-amber-700:hover{--tw-bg-opacity:1;background-color:rgb(180 83 9 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-800:hover{--tw-bg-opacity:1;background-color:rgb(146 64 14 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-800:hover{--tw-bg-opacity:1;background-color:rgb(6 95 70 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-800:hover{--tw-bg-opacity:1;background-color:rgb(7 89 133 / var(--tw-bg-opacity, 1))}.hover\:bg-stone-100:hover{--tw-bg-opacity:1;background-color:rgb(245 245 244 / var(--tw-bg-opacity, 1))}.hover\:text-amber-700:hover{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-amber-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(245 158 11 / var(--tw-ring-opacity, 1))}.focus\:ring-emerald-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(16 185 129 / var(--tw-ring-opacity, 1))}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:opacity-40:disabled{opacity:0.4}</style></head>
+</head>
 <body class="min-h-screen bg-stone-50">
 <div class="max-w-2xl mx-auto px-4 py-6" id="app">
   <div class="mb-4">
     <h1 class="text-xs font-bold text-amber-700 tracking-[0.2em] uppercase">Fleet Generator</h1>
     <p class="text-xs text-stone-400">Build your Claude agent team</p>
   </div>
-  <div id="stepIndicator" class="flex items-center gap-1 mb-6 overflow-x-auto pb-2"><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-amber-600 text-white">1. Start</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">2. Project</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">3. Repos</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">4. Words</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">5. Team</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">6. Prefs</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">7. Preview</div>
-    </div><div class="text-stone-300 px-1">·</div><div class="flex items-center gap-1 shrink-0">
-      <div class="text-[10px] font-bold tracking-wider px-2 py-1 rounded-md bg-stone-100 text-stone-400">8. Download</div>
-    </div></div>
+  <div id="stepIndicator" class="flex items-center gap-1 mb-6 overflow-x-auto pb-2"></div>
 
   <div class="step active" id="step0">
     <h2 class="text-2xl font-bold text-stone-800 mb-2">Choose your path</h2>
-    <p class="text-stone-500 mb-6">Three ways to install. Pick one.</p>
+    <p class="text-stone-500 mb-4">Three ways to install. Pick one.</p>
+
+    <details open class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-sm">
+      <summary class="cursor-pointer font-medium text-amber-900">Before you start — quick checklist (any path)</summary>
+      <div id="prereqList" class="space-y-2 mt-3"></div>
+    </details>
 
     <div class="space-y-4 mb-6">
 
@@ -78,7 +68,7 @@
           <input id="quickRepoPath" oninput="onQuickInput()" placeholder="Repo path (e.g. ~/dev/my-app)" class="w-full px-4 py-2.5 rounded-xl border border-amber-300 focus:ring-2 focus:ring-amber-500 outline-none font-mono text-sm">
           <input id="quickProjectName" oninput="onQuickInput()" placeholder="Project name (defaults to repo folder)" class="w-full px-4 py-2.5 rounded-xl border border-amber-300 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
         </div>
-        <button id="quickStartBtn" onclick="applyQuickStart()" class="w-full px-5 py-2.5 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 transition disabled:opacity-40 disabled:cursor-not-allowed" disabled="">Generate self-maintaining fleet</button>
+        <button id="quickStartBtn" onclick="applyQuickStart()" class="w-full px-5 py-2.5 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>Generate self-maintaining fleet</button>
       </div>
 
       <!-- PATH 3 — Workshop install -->
@@ -94,35 +84,10 @@
         <div class="space-y-2 mb-3">
           <input id="workshopPath" oninput="onWorkshopInput()" placeholder="Workshop path (e.g. ~/dev/my-fleet-workshop)" class="w-full px-4 py-2.5 rounded-xl border border-emerald-300 focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-sm">
         </div>
-        <button id="workshopBtn" onclick="applyQuickStartWorkshop()" class="w-full px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-800 transition disabled:opacity-40 disabled:cursor-not-allowed">Generate fleet-generator workshop</button>
+        <button id="workshopBtn" onclick="applyQuickStartWorkshop()" class="w-full px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-bold hover:bg-emerald-800 transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>Generate fleet-generator workshop</button>
       </div>
 
     </div>
-
-    <details class="bg-stone-50 border border-stone-200 rounded-xl p-4 text-sm">
-      <summary class="cursor-pointer font-medium text-stone-700">Before you start — quick checklist (any path)</summary>
-      <div id="prereqList" class="space-y-2 mt-3">
-    <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-400 transition">
-      <input type="checkbox" oninput="togglePrereq(0)" class="mt-0.5 w-4 h-4 accent-amber-600">
-      <span class="text-sm text-stone-700">I have Claude Code CLI installed (claude.ai/code)</span>
-    </label>
-    <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-400 transition">
-      <input type="checkbox" oninput="togglePrereq(1)" class="mt-0.5 w-4 h-4 accent-amber-600">
-      <span class="text-sm text-stone-700">I have a claude.ai account for chat</span>
-    </label>
-    <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-400 transition">
-      <input type="checkbox" oninput="togglePrereq(2)" class="mt-0.5 w-4 h-4 accent-amber-600">
-      <span class="text-sm text-stone-700">I have at least one git repo for my project</span>
-    </label>
-    <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-400 transition">
-      <input type="checkbox" oninput="togglePrereq(3)" class="mt-0.5 w-4 h-4 accent-amber-600">
-      <span class="text-sm text-stone-700">I have my project name and a one-line description ready</span>
-    </label>
-    <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-400 transition">
-      <input type="checkbox" oninput="togglePrereq(4)" class="mt-0.5 w-4 h-4 accent-amber-600">
-      <span class="text-sm text-stone-700">I have 5–10 minutes to walk through the wizard</span>
-    </label></div>
-    </details>
   </div>
 
   <div class="step" id="step1">
@@ -250,8 +215,8 @@
   </div>
 
   <div class="flex justify-between mt-8 pt-6 border-t border-stone-200">
-    <button id="backBtn" onclick="goBack()" class="px-5 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-medium hover:bg-stone-100 transition" style="display: none;">← Back</button>
-    <button id="nextBtn" onclick="goNext()" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold hover:bg-amber-700 transition" style="display: none;">Next →</button>
+    <button id="backBtn" onclick="goBack()" class="px-5 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-medium hover:bg-stone-100 transition">← Back</button>
+    <button id="nextBtn" onclick="goNext()" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold hover:bg-amber-700 transition">Next →</button>
   </div>
 </div>
 
@@ -365,7 +330,7 @@ const ROLES = [
     notDoes: ["Modify code","Make design decisions"],
     skills: ["self-review"],
     descLine: "Accessibility reviewer. Read-only. Audits UI changes against WCAG — screen-reader support, keyboard navigation, color contrast, touch targets, semantic structure. Use PROACTIVELY for any UI mission and any change that adds interactive elements." },
-  { key: 'perf', name: 'Opus', title: 'Performance Reviewer', required: false,
+  { key: 'perf', name: 'Odie', title: 'Performance Reviewer', required: false,
     persona: "Data-driven and precise. Identifies unnecessary allocations, N+1 queries, blocking calls, memory leaks. Quantifies impact. Distinguishes theoretical from practical concerns. Never optimizes prematurely.",
     role: "Performance reviewer for {{project}}. Identifies real bottlenecks, quantifies impact, never optimizes prematurely.",
     does: ["Identify unnecessary allocations, N+1 queries, blocking calls","Quantify impact","Distinguish theoretical from practical concerns"],
@@ -403,6 +368,19 @@ const UNCERTAINTY_OPTIONS = [
   { value: 'always-ask',   label: 'Always ask before any action',   short: 'Always ask before acting.' }
 ];
 
+// Canned personality flavors. ≤150 chars each. Picked from the Step 4 dropdown;
+// auto-fills the personality textarea where the user can edit further.
+const PERSONALITY_OPTIONS = [
+  "Dry and laconic. Few words, well chosen. Occasional sardonic aside.",
+  "Warm and encouraging. Frames feedback constructively. Curious about the work.",
+  "Direct and unsentimental. No softening. The call, plain.",
+  "Playful and witty. Light tone even when the work is heavy.",
+  "Pragmatic skeptic. Trusts evidence over claims. Asks for the data.",
+  "Old-school engineer. Skeptical of fashion. Lives by least surprise.",
+  "Quiet professional. Lets the work speak. Rare commentary, always pointed.",
+  "Patient teacher. Explains the why before the how."
+];
+
 // ============================================================================
 // STATE
 // ============================================================================
@@ -419,7 +397,22 @@ const state = {
   workshopMode: false,  // when true, ship as fleet-generator workshop
   workshopPayload: null // { generatorHtml, guideHtml }
 };
-ROLES.forEach(r => { state.agents[r.key] = { enabled: r.required, name: r.name, persona: r.persona }; });
+// Per-agent state. Persona / personality / does / notDoes start blank — the
+// UI shows the role's sample text as a greyed-in placeholder, and "Use sample"
+// buttons (or the personality dropdown) populate the field on demand. genAgent
+// falls back to the role sample when persona/does/notDoes are blank, so empty
+// fields still produce a complete manifest. Personality is genuinely optional:
+// when blank, the manifest omits it entirely.
+ROLES.forEach(r => {
+  state.agents[r.key] = {
+    enabled: r.required,
+    name: r.name,
+    persona: '',
+    personality: '',
+    does: '',
+    notDoes: ''
+  };
+});
 
 // ============================================================================
 // HELPERS
@@ -4227,10 +4220,22 @@ function renderRefs(skillName, def) {
 // AGENT MANIFEST
 // ============================================================================
 
+// Parse a multi-line textarea ("one item per line") into a trimmed array of
+// non-blank entries. Empty input → empty array → caller falls back to the
+// role sample.
+function parseLines(s) {
+  return (s || '').split('\n').map(l => l.trim()).filter(Boolean);
+}
+
 function genAgent(role) {
   const a = state.agents[role.key];
   const name = a.name || role.name;
-  const persona = a.persona || role.persona;
+  const persona = (a.persona && a.persona.trim()) || role.persona;
+  const personality = (a.personality || '').trim();
+  const doesList    = parseLines(a.does);
+  const notDoesList = parseLines(a.notDoes);
+  const does    = doesList.length    ? doesList    : role.does;
+  const notDoes = notDoesList.length ? notDoesList : role.notDoes;
   const slug = kebab(name);
   const skills = role.skills || [];
 
@@ -4250,9 +4255,10 @@ function genAgent(role) {
   s += '---\n\n';
   s += `# ${name} — ${role.title}\n\n`;
   s += `**Persona:** ${persona}\n\n`;
+  if (personality) s += `**Personality:** ${personality}\n\n`;
   s += `## Role\n\n${sub(role.role)}\n\n`;
-  s += `## What You Do\n\n${role.does.map(d=>'- '+sub(d)).join('\n')}\n\n`;
-  s += `## What You Do NOT Do\n\n${role.notDoes.map(d=>'- '+d).join('\n')}\n\n`;
+  s += `## What You Do\n\n${does.map(d=>'- '+sub(d)).join('\n')}\n\n`;
+  s += `## What You Do NOT Do\n\n${notDoes.map(d=>'- '+d).join('\n')}\n\n`;
   s += `## Skills you apply\n\n`;
   if (skills.length) {
     s += skills.map(k => `- \`${k}\` — auto-loads when relevant`).join('\n') + '\n\n';
@@ -5674,11 +5680,31 @@ function genInstallSh() {
   const w = agentSlug('worker');
   return `#!/bin/bash
 set -e
+
+AUTO_INIT=0
+case "\${1:-}" in
+  --init|-y) AUTO_INIT=1; shift ;;
+esac
 REPO="\${1:-.}"
+case "\${2:-}" in
+  --init|-y) AUTO_INIT=1 ;;
+esac
+
+mkdir -p "$REPO"
 
 if [ ! -d "$REPO/.git" ]; then
-  echo "Error: $REPO is not a git repo"
-  exit 1
+  if [ "$AUTO_INIT" = "1" ] || [ ! -t 0 ]; then
+    echo "Initializing new git repo at $REPO"
+    (cd "$REPO" && git init -q)
+  else
+    printf "%s is not a git repo. Initialize one? [Y/n] " "$REPO"
+    read resp || resp="n"
+    case "\${resp:-Y}" in
+      [nN]*) echo "Aborted. Re-run with --init to skip this prompt."; exit 1 ;;
+    esac
+    echo "Initializing new git repo at $REPO"
+    (cd "$REPO" && git init -q)
+  fi
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -5934,9 +5960,14 @@ function renderAgents() {
     const a = state.agents[role.key];
     const isOpen = a._open;
     const enabled = a.enabled;
-    const charCount = (a.persona || '').length;
-    const nameCount = (a.name || '').length;
+    const personaCount     = (a.persona     || '').length;
+    const personalityCount = (a.personality || '').length;
+    const doesCount        = (a.does        || '').length;
+    const notDoesCount     = (a.notDoes     || '').length;
+    const nameCount        = (a.name        || '').length;
     const lock = role.required ? '<span class="pill bg-amber-100 text-amber-700 ml-2">required</span>' : '';
+    const personalityOpts = PERSONALITY_OPTIONS.map(p =>
+      `<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('');
     return `
       <div class="bg-white rounded-xl border ${enabled ? 'border-amber-300' : 'border-stone-200'}">
         <div class="p-3 flex items-center justify-between">
@@ -5952,24 +5983,52 @@ function renderAgents() {
         </div>
         <div class="agent-details ${isOpen?'open':''} px-3 pb-4 border-t border-stone-100">
           <div class="pt-3 space-y-3">
+
             <div>
               <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Name</span><span class="text-stone-400">${nameCount}/64</span></label>
               <input value="${escHtml(a.name)}" maxlength="64" oninput="updateAgent('${role.key}','name',this.value)" class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">
             </div>
+
             <div>
-              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Persona</span><span class="text-stone-400">${charCount}/1024</span></label>
-              <textarea maxlength="1024" rows="6" oninput="updateAgent('${role.key}','persona',this.value)" class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.persona)}</textarea>
-              <button onclick="resetPersona('${role.key}')" class="mt-1 text-xs text-amber-700 hover:underline">Use suggested persona</button>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Persona</span><span class="text-stone-400">${personaCount}/874</span></label>
+              <textarea maxlength="874" rows="6"
+                placeholder="${escHtml(role.persona)}"
+                oninput="updateAgent('${role.key}','persona',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.persona)}</textarea>
+              <button onclick="useSample('${role.key}','persona')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample persona</button>
             </div>
-            <details class="text-xs text-stone-500">
-              <summary class="cursor-pointer">What this role does</summary>
-              <div class="mt-2 space-y-1">
-                <div class="font-semibold text-stone-700">Does:</div>
-                <ul class="list-disc pl-5">${role.does.map(d=>`<li>${escHtml(d)}</li>`).join('')}</ul>
-                <div class="font-semibold text-stone-700 mt-2">Doesn't:</div>
-                <ul class="list-disc pl-5">${role.notDoes.map(d=>`<li>${escHtml(d)}</li>`).join('')}</ul>
-              </div>
-            </details>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>Personality (optional)</span><span class="text-stone-400">${personalityCount}/150</span></label>
+              <select onchange="pickPersonality('${role.key}', this.value)"
+                class="w-full px-3 py-2 mb-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white">
+                <option value="">— pick a sample personality —</option>
+                ${personalityOpts}
+              </select>
+              <textarea maxlength="150" rows="2"
+                placeholder="Optional personality flavor — pick from the dropdown above, or type your own."
+                oninput="updateAgent('${role.key}','personality',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.personality)}</textarea>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>What you do (one per line)</span><span class="text-stone-400">${doesCount} chars</span></label>
+              <textarea rows="4"
+                placeholder="${escHtml(role.does.join('\n'))}"
+                oninput="updateAgent('${role.key}','does',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.does)}</textarea>
+              <button onclick="useSample('${role.key}','does')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample</button>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-stone-500 mb-1 flex justify-between"><span>What you do NOT (one per line)</span><span class="text-stone-400">${notDoesCount} chars</span></label>
+              <textarea rows="3"
+                placeholder="${escHtml(role.notDoes.join('\n'))}"
+                oninput="updateAgent('${role.key}','notDoes',this.value)"
+                class="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-amber-500 outline-none text-sm">${escHtml(a.notDoes)}</textarea>
+              <button onclick="useSample('${role.key}','notDoes')" class="mt-1 text-xs text-amber-700 hover:underline">Use sample</button>
+            </div>
+
           </div>
         </div>
       </div>`;
@@ -5978,7 +6037,27 @@ function renderAgents() {
 function toggleAgentOpen(k){ state.agents[k]._open = !state.agents[k]._open; renderAgents(); }
 function toggleAgentEnabled(k){ const r = ROLES.find(x=>x.key===k); if(r.required) return; state.agents[k].enabled=!state.agents[k].enabled; renderAgents(); refreshNav(); }
 function updateAgent(k,f,v){ state.agents[k][f]=v; refreshNav(); }
-function resetPersona(k){ const r=ROLES.find(x=>x.key===k); state.agents[k].persona=r.persona; renderAgents(); refreshNav(); }
+// Generic "Use sample" handler. Copies the role's canned text into the
+// matching state field. For does/notDoes the canonical sample is an array;
+// it's joined with newlines so it renders cleanly in the multi-line textarea.
+function useSample(k, field) {
+  const r = ROLES.find(x => x.key === k);
+  let value = '';
+  if      (field === 'persona') value = r.persona;
+  else if (field === 'does')    value = r.does.join('\n');
+  else if (field === 'notDoes') value = r.notDoes.join('\n');
+  state.agents[k][field] = value;
+  state.agents[k]._open  = true;
+  renderAgents();
+  refreshNav();
+}
+function pickPersonality(k, val) {
+  if (!val) return;
+  state.agents[k].personality = val;
+  state.agents[k]._open = true;
+  renderAgents();
+  refreshNav();
+}
 
 function renderPrefs() {
   $('verbosityLabel').textContent = verbosityLine(state.prefs.verbosity);
@@ -6320,6 +6399,5 @@ function init() {
 }
 init();
 </script>
-
-
-</body></html>
+</body>
+</html>

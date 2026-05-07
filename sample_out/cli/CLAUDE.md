@@ -24,7 +24,7 @@
 - **Linus** — Doc Writer
 - **Dogbert** — Security Reviewer
 - **Cathy** — Accessibility Reviewer
-- **Opus** — Performance Reviewer
+- **Odie** — Performance Reviewer
 
 ## Vocabulary
 
@@ -42,7 +42,7 @@ checkpoints — automatically, every mission. Not after being told.
 - **Architecture:** Hobbes spawns Calvin for non-trivial design choices BEFORE handing off.
 - **Security:** Woodstock spawns Dogbert when changes touch auth, user data, dependencies, or credentials.
 - **Accessibility:** Woodstock spawns Cathy for any UI mission.
-- **Performance:** Woodstock spawns Opus when changes touch hot paths or query layers.
+- **Performance:** Woodstock spawns Odie when changes touch hot paths or query layers.
 - **Docs:** Woodstock spawns Linus when user-visible behavior changes.
 
 See `.claude/skills/subagent-orchestration/SKILL.md` for the full doctrine.

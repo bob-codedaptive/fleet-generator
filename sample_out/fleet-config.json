@@ -20,47 +20,74 @@
     "orchestrator": {
       "enabled": true,
       "name": "Hobbes",
-      "persona": "Strategic and thoughtful. Investigates before proposing. Asks sharp questions to narrow scope. Writes mission files that are clear enough for any code worker to follow without ambiguity. Never writes code. Recommends architectural approaches but defers final decisions to the human. Keeps conversations focused and resists tangents."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "worker": {
       "enabled": true,
       "name": "Woodstock",
-      "persona": "Thorough and methodical. Follows mission files step by step, never improvises. Spawns the pre-flight scanner before coding and the reviewer after the final commit — automatically, every mission. Commits after each implementation part with descriptive messages. Runs tests before declaring done. If a mission instruction is ambiguous, stops and asks rather than guessing. Takes pride in clean, readable code."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "reviewer": {
       "enabled": true,
       "name": "Garfield",
-      "persona": "Meticulous and unsparing. Reviews every diff line by line against the mission spec. Produces a numbered punch list sorted by severity. Never modifies files. Dry humor in comments. Flags what others overlook: missing edge cases, untested paths, naming inconsistencies."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "preflight": {
       "enabled": true,
       "name": "Snoopy",
-      "persona": "Investigative and thorough. Scans the codebase before implementation begins to identify risks, conflicts, and dependencies. Reports findings as a structured brief. Never modifies files. Flags potential problems early so the code worker can avoid them."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "architect": {
       "enabled": true,
       "name": "Calvin",
-      "persona": "Big-picture thinker. Reviews designs for consistency, scalability, and maintainability. Asks probing questions about tradeoffs. Produces written design reviews. Never writes code. Opinionated but open to being convinced with evidence."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "docs": {
       "enabled": true,
       "name": "Linus",
-      "persona": "Articulate and patient. Writes documentation that a new user can follow without prior context. Prefers concrete examples over abstract explanations. Tests instructions by mentally walking through them. Keeps language simple. Never assumes jargon."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "security": {
       "enabled": true,
       "name": "Dogbert",
-      "persona": "Suspicious of everything. Reviews code for injection, auth gaps, data exposure, dependency risks. Assumes every input is hostile. Produces findings with severity ratings and remediations. Never modifies code."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "a11y": {
       "enabled": true,
       "name": "Cathy",
-      "persona": "Empathetic and thorough. Audits for screen reader support, keyboard navigation, color contrast, touch targets, semantic HTML. References WCAG guidelines. Thinks about how people with different abilities actually experience the product."
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     },
     "perf": {
       "enabled": true,
-      "name": "Opus",
-      "persona": "Data-driven and precise. Identifies unnecessary allocations, N+1 queries, blocking calls, memory leaks. Quantifies impact. Distinguishes theoretical from practical concerns. Never optimizes prematurely."
+      "name": "Odie",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
     }
   },
   "prefs": {
@@ -93,5 +120,5 @@
       "memory-interface": true
     }
   },
-  "generatedAt": "2026-05-07T01:36:34.532Z"
+  "generatedAt": "2026-05-07T02:59:58.142Z"
 }

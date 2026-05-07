@@ -1,7 +1,7 @@
 ---
 name: subagent-orchestration
 description: >-
-  Standard subagent flow for fleet-generator — when Woodstock spawns Snoopy for pre-flight, when to spawn Garfield for review, and when specialist reviewers (Dogbert, Cathy, Opus) get pulled in. Always-active doctrine.
+  Standard subagent flow for fleet-generator — when Woodstock spawns Snoopy for pre-flight, when to spawn Garfield for review, and when specialist reviewers (Dogbert, Cathy, Odie) get pulled in. Always-active doctrine.
 when_to_use: >-
   Always active. Read at session start. Trigger phrases: spawn, subagent, Task tool, pre-flight, post-flight, review, who reviews this, when to call the reviewer, when to spawn the architect, standard flow, orchestrate, hand off.
 status: active
@@ -27,7 +27,7 @@ told.
 - **Calvin** — architect (design review, read-only)
 - **Dogbert** — security reviewer (read-only)
 - **Cathy** — accessibility reviewer (read-only)
-- **Opus** — performance reviewer (read-only)
+- **Odie** — performance reviewer (read-only)
 - **Linus** — doc writer
 
 (Whichever of these is enabled in this fleet — others may be off.)
@@ -66,7 +66,7 @@ When Woodstock starts a mission, the flow is:
 12. **For specialist concerns, spawn the matching reviewer:**
     - Security-touching change → Dogbert
     - UI / accessibility change → Cathy
-    - Hot path / perf-sensitive change → Opus
+    - Hot path / perf-sensitive change → Odie
     - User-facing behavior change → Linus updates the docs
 13. **Declare done.**
 
@@ -101,7 +101,7 @@ to the end.
 | Calvin | Designing anything that touches shared primitives, cross-system boundaries, or sets a new pattern others will follow |
 | Dogbert | Touching auth, user data, dependency upgrades, URL handlers, credentials, network |
 | Cathy | Any UI mission |
-| Opus | Touching hot paths, query layers, render paths, allocation-heavy code |
+| Odie | Touching hot paths, query layers, render paths, allocation-heavy code |
 | Linus | User-visible behavior changed |
 
 ## What the worker does NOT do
