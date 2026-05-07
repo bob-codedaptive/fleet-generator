@@ -7,9 +7,75 @@ struct Anvil: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "anvil",
         abstract: "Parse, lint, edit, and deploy Claude fleet (.claude/) libraries.",
-        version: "0.2.0",
-        subcommands: [Lint.self, Ls.self, Show.self, Diff.self, Redundancy.self]
+        version: "0.3.0",
+        subcommands: [Lint.self, Ls.self, Show.self, Diff.self, Redundancy.self, Edit.self]
     )
+}
+
+// MARK: - edit
+
+struct Edit: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Edit YAML frontmatter on an agent or skill (minimal-diff line replacement)."
+    )
+
+    @Argument(help: "Path to <library>/agents/<name>.md, <library>/skills/<name>/SKILL.md, or <library>/<name> (which will be resolved).")
+    var target: String
+
+    @Option(name: .customLong("set"), help: "key=value (repeatable). Use to update or add a top-level frontmatter key.")
+    var sets: [String] = []
+
+    func run() throws {
+        let fileURL = try resolveTargetFile(target)
+        var pairs: [(key: String, value: String)] = []
+        for raw in sets {
+            guard let eq = raw.firstIndex(of: "=") else {
+                FileHandle.standardError.write(Data("anvil edit: --set value '\(raw)' missing '='\n".utf8))
+                throw ExitCode(2)
+            }
+            let key = String(raw[..<eq])
+            let value = String(raw[raw.index(after: eq)...])
+            pairs.append((key, value))
+        }
+        if pairs.isEmpty {
+            FileHandle.standardError.write(Data("anvil edit: no --set flags provided\n".utf8))
+            throw ExitCode(2)
+        }
+        try FrontmatterMutator.apply(pairs, to: fileURL)
+        print("Updated \(fileURL.path)")
+    }
+}
+
+/// Accepts:
+///   - direct file path to <name>.md or SKILL.md
+///   - <library>/agents/<name>  → adds .md
+///   - <library>/skills/<name>  → adds /SKILL.md
+///   - <library>/<name>         → looks for <library>/agents/<name>.md, then
+///                                <library>/skills/<name>/SKILL.md
+func resolveTargetFile(_ target: String) throws -> URL {
+    let url = expand(target)
+    let fm = FileManager.default
+    if fm.fileExists(atPath: url.path) {
+        var isDir: ObjCBool = false
+        fm.fileExists(atPath: url.path, isDirectory: &isDir)
+        if !isDir.boolValue { return url }
+        let inside = url.appendingPathComponent("SKILL.md")
+        if fm.fileExists(atPath: inside.path) { return inside }
+    }
+    let withMD = url.appendingPathExtension("md")
+    if fm.fileExists(atPath: withMD.path) { return withMD }
+    let asSkill = url.appendingPathComponent("SKILL.md")
+    if fm.fileExists(atPath: asSkill.path) { return asSkill }
+
+    let parent = url.deletingLastPathComponent()
+    let name = url.lastPathComponent
+    let agentGuess = parent.appendingPathComponent("agents").appendingPathComponent("\(name).md")
+    if fm.fileExists(atPath: agentGuess.path) { return agentGuess }
+    let skillGuess = parent.appendingPathComponent("skills").appendingPathComponent(name).appendingPathComponent("SKILL.md")
+    if fm.fileExists(atPath: skillGuess.path) { return skillGuess }
+
+    FileHandle.standardError.write(Data("anvil edit: could not resolve target '\(target)' to an existing agent or skill file.\n".utf8))
+    throw ExitCode(2)
 }
 
 // MARK: - lint
