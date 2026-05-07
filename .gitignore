@@ -54,3 +54,9 @@ logs/
 # Local notes
 scratch/
 NOTES.local.md
+
+# Swift / SwiftPM
+swift/.build/
+swift/.swiftpm/
+*.xcodeproj
+DerivedData/
