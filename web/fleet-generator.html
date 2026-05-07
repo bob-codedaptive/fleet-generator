@@ -5639,11 +5639,31 @@ function genInstallSh() {
   const w = agentSlug('worker');
   return `#!/bin/bash
 set -e
+
+AUTO_INIT=0
+case "\${1:-}" in
+  --init|-y) AUTO_INIT=1; shift ;;
+esac
 REPO="\${1:-.}"
+case "\${2:-}" in
+  --init|-y) AUTO_INIT=1 ;;
+esac
+
+mkdir -p "$REPO"
 
 if [ ! -d "$REPO/.git" ]; then
-  echo "Error: $REPO is not a git repo"
-  exit 1
+  if [ "$AUTO_INIT" = "1" ] || [ ! -t 0 ]; then
+    echo "Initializing new git repo at $REPO"
+    (cd "$REPO" && git init -q)
+  else
+    printf "%s is not a git repo. Initialize one? [Y/n] " "$REPO"
+    read resp || resp="n"
+    case "\${resp:-Y}" in
+      [nN]*) echo "Aborted. Re-run with --init to skip this prompt."; exit 1 ;;
+    esac
+    echo "Initializing new git repo at $REPO"
+    (cd "$REPO" && git init -q)
+  fi
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

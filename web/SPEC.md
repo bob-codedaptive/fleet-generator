@@ -142,7 +142,7 @@ All scripts: `set -euo pipefail`, jq with grep fallback, fail-open on errors, au
 
 - **`CLAUDE.md`** — project header, repos table, team list, vocabulary mapping, standard subagent flow (synthesized from which agents are enabled), working-style block, "Locked Decisions" stub, where-things-live block.
 - **`settings.json`** — JSON with `hooks[]` entries for each selected hook (event/pattern/command).
-- **`install.sh`** — bash that requires `$1/.git`, `mkdir -p` the `.claude/` skeleton, copies agents/skills/rules/missions, copies hooks with `chmod +x`, refuses to overwrite existing `CLAUDE.md` or `.claude/settings.json` (lands them as `*.fleet`).
+- **`install.sh`** — bash that takes a target path (defaults to `.`). If the target isn't a git repo, prompts to `git init` it (default Y), or auto-inits with `--init`/`-y` flag, or auto-inits when stdin is non-tty. Then `mkdir -p` the `.claude/` skeleton, copies agents/skills/rules/missions, copies hooks with `chmod +x`, refuses to overwrite existing `CLAUDE.md` or `.claude/settings.json` (lands them as `*.fleet`).
 - **`README.md`** — different copy for workshop vs. project mode.
 - **`fleet-config.json`** — the raw wizard state for re-running.
 
