@@ -1,0 +1,49 @@
+{
+  "hooks": [
+    {
+      "event": "Stop",
+      "pattern": "**",
+      "command": ".claude/hooks/log-stop-failure.sh"
+    },
+    {
+      "event": "PostStart",
+      "pattern": "**",
+      "command": ".claude/hooks/log-instructions-loaded.sh"
+    },
+    {
+      "event": "PreToolUse",
+      "pattern": "Bash(git push *)",
+      "command": ".claude/hooks/gate-push.sh"
+    },
+    {
+      "event": "SubagentStart",
+      "pattern": "**",
+      "command": ".claude/hooks/log-subagent-start.sh"
+    },
+    {
+      "event": "SubagentStop",
+      "pattern": "**",
+      "command": ".claude/hooks/log-subagent-stop.sh"
+    },
+    {
+      "event": "PreCompact",
+      "pattern": "**",
+      "command": ".claude/hooks/save-pre-compact.sh"
+    },
+    {
+      "event": "PostCompact",
+      "pattern": "**",
+      "command": ".claude/hooks/verify-post-compact.sh"
+    },
+    {
+      "event": "PreToolUse",
+      "pattern": "Edit|Write|MultiEdit",
+      "command": ".claude/hooks/enforce-write-scope.sh"
+    },
+    {
+      "event": "Stop",
+      "pattern": "**",
+      "command": ".claude/hooks/prompt-memory-curation.sh"
+    }
+  ]
+}

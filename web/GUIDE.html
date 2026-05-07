@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Generator — Quick Start Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #fafaf9;
+    --fg: #1c1917;
+    --accent: #c2410c;
+    --accent-light: #fed7aa;
+    --muted: #78716c;
+    --card: #ffffff;
+    --border: #e7e5e4;
+    --code-bg: #292524;
+    --code-fg: #fafaf9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  @media print {
+    body { padding: 20px; max-width: 100%; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-size: 1.1rem;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2 .step-num {
+    background: var(--accent);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+
+  .card.highlight {
+    border-left: 4px solid var(--accent);
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.5;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  pre code { background: none; padding: 0; }
+
+  .diagram {
+    text-align: center;
+    margin: 24px 0;
+  }
+
+  .diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .tree {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+
+  .tree .dir { color: var(--accent); font-weight: 500; }
+  .tree .file { color: var(--muted); }
+  .tree .desc { color: var(--muted); font-style: italic; font-size: 0.78rem; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge.cli { background: #dbeafe; color: #1e40af; }
+  .badge.chat { background: #fce7f3; color: #9d174d; }
+  .badge.both { background: #d1fae5; color: #065f46; }
+
+  .tip {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+  }
+
+  .tip::before { content: "Tip: "; font-weight: 700; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.9rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Fleet <span>Generator</span></h1>
+<p class="subtitle">Set up a Claude agent team for your project in 5 minutes — or in 30 seconds.</p>
+
+<!-- ═══════════════════════════ PAGE 1 ═══════════════════════════ -->
+
+<h2><span class="step-num">1</span> Run the Generator and Pick a Path</h2>
+
+<div class="card highlight">
+<p>Open <code>fleet-generator.html</code> in any browser — Chrome, Safari, Firefox. No install, no server. The first screen asks you to <strong>choose your path</strong>.</p>
+</div>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Path 1 — Guided install (~5 minutes)</h3>
+
+<div class="card">
+  <p style="font-size:0.95rem">Walk through 7 steps: project, repos, vocabulary, team, preferences, preview, download. Pick which agents you want, name them, write personas, choose your slash-command vocabulary, opt into the optional skills and hooks you want.</p>
+  <p style="font-size:0.9rem; color: var(--muted); margin-top:8px"><strong>Best when:</strong> you want to customize from scratch and learn the pieces as you go. Output is a tailored fleet for one project.</p>
+</div>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Path 2 — One-shot install with sample settings (~30 seconds)</h3>
+
+<div class="card">
+  <p style="font-size:0.95rem">Type a repo path. Click. Done. We pick sensible defaults: every agent, every optional skill, every hook, the maintenance doctrine, and a starter audit mission. Drops a complete self-maintaining fleet into your repo.</p>
+  <p style="font-size:0.9rem; color: var(--muted); margin-top:8px"><strong>Best first run:</strong> a fresh, empty repo. Get familiar with the agents and how they work without affecting real code.</p>
+  <p style="font-size:0.9rem; color: var(--muted); margin-top:8px"><strong>Safe in production repos too</strong> — the installer never overwrites your existing <code>CLAUDE.md</code> or <code>settings.json</code> (saved alongside as <code>*.fleet</code>). But for a real product repo, <strong>Path 1 is preferred</strong> so you choose names, vocabulary, and only the agents/hooks you actually want.</p>
+</div>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Path 3 — Install fleet-generator as a project (~30 seconds, for power users)</h3>
+
+<div class="card">
+  <p style="font-size:0.95rem">Workshop mode. Bundles a copy of <code>fleet-generator.html</code> into a workspace and ships agents that know how to edit it. Add features and customize defaults over time — every future project you generate from your fork inherits your additions. Includes a 3-mission tutorial ladder that teaches the file by editing it.</p>
+  <p style="font-size:0.9rem; color: var(--muted); margin-top:8px"><strong>Best when:</strong> you'll be using this generator across many projects and want to evolve it to match your team's specific patterns. Output is a personal workshop.</p>
+</div>
+
+<div class="tip">
+  Paths 2 and 3 download immediately. Path 1 walks you through the wizard and downloads at the end. All three produce a single zip you unzip and install.
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:700px">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c2410c"/>
+    </marker>
+  </defs>
+
+  <!-- Open HTML -->
+  <rect x="10" y="90" width="140" height="44" rx="8" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+  <text x="80" y="117" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#1c1917">Open HTML</text>
+
+  <!-- Three paths -->
+  <line x1="150" y1="105" x2="200" y2="40" stroke="#0369a1" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="150" y1="112" x2="200" y2="112" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="150" y1="120" x2="200" y2="185" stroke="#047857" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="200" y="20" width="200" height="44" rx="8" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="300" y="40" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#0369a1">Path 1 — Wizard</text>
+  <text x="300" y="56" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#0369a1">7 steps, ~5 min</text>
+
+  <rect x="200" y="90" width="200" height="44" rx="8" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <text x="300" y="110" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#b45309">Path 2 — One-shot project</text>
+  <text x="300" y="126" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#b45309">repo path, ~30 sec</text>
+
+  <rect x="200" y="160" width="200" height="44" rx="8" fill="#d1fae5" stroke="#047857" stroke-width="1.5"/>
+  <text x="300" y="180" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#047857">Path 3 — Workshop</text>
+  <text x="300" y="196" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#047857">power users, ~30 sec</text>
+
+  <!-- Converge to download -->
+  <line x1="400" y1="42" x2="450" y2="105" stroke="#c2410c" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="400" y1="112" x2="450" y2="112" stroke="#c2410c" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="400" y1="182" x2="450" y2="120" stroke="#c2410c" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="450" y="90" width="140" height="44" rx="8" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+  <text x="520" y="117" text-anchor="middle" font-family="DM Sans" font-size="13" font-weight="600" fill="#1c1917">Download Zip</text>
+
+  <!-- Install -->
+  <line x1="590" y1="105" x2="630" y2="80" stroke="#1e40af" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="590" y1="120" x2="630" y2="145" stroke="#9d174d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="630" y="60" width="120" height="44" rx="8" fill="#dbeafe" stroke="#1e40af" stroke-width="1.5"/>
+  <text x="690" y="87" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#1e40af">install.sh</text>
+
+  <rect x="630" y="125" width="120" height="44" rx="8" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5"/>
+  <text x="690" y="152" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#9d174d">drag zips</text>
+</svg>
+</div>
+
+<h2><span class="step-num">2</span> What's in the Zip</h2>
+
+<div class="grid-2">
+  <div>
+    <p style="margin-bottom:8px"><span class="badge cli">CLI</span> For Claude Code terminal</p>
+    <div class="tree">
+      <span class="dir">cli/</span><br>
+      &nbsp;&nbsp;<span class="file">CLAUDE.md</span> <span class="desc">project rules</span><br>
+      &nbsp;&nbsp;<span class="file">settings.json</span> <span class="desc">hooks config</span><br>
+      &nbsp;&nbsp;<span class="dir">agents/</span> <span class="desc">your team</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">&lt;name&gt;.md</span> <span class="desc">one per agent</span><br>
+      &nbsp;&nbsp;<span class="dir">skills/</span> <span class="desc">capabilities</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">&lt;name&gt;/SKILL.md</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">&lt;name&gt;/references/</span> <span class="desc">progressive disclosure</span><br>
+      &nbsp;&nbsp;<span class="dir">rules/</span> <span class="desc">always-on</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">repo-layout.md</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">compaction.md</span> <span class="desc">survives summarization</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">hazmat.md</span> <span class="desc">7 always-on rules</span><br>
+      &nbsp;&nbsp;<span class="dir">hooks/</span> <span class="desc">9 optional</span><br>
+      &nbsp;&nbsp;<span class="dir">missions/</span> <span class="desc">starter missions</span>
+    </div>
+  </div>
+  <div>
+    <p style="margin-bottom:8px"><span class="badge chat">Chat</span> For claude.ai web/desktop</p>
+    <div class="tree">
+      <span class="dir">chat/</span><br>
+      &nbsp;&nbsp;<span class="file">README.md</span><br>
+      &nbsp;&nbsp;<span class="file">&lt;scope-word&gt;.zip</span> <span class="desc">investigation</span><br>
+      &nbsp;&nbsp;<span class="file">&lt;draft-word&gt;.zip</span> <span class="desc">spec writing</span><br>
+      &nbsp;&nbsp;<span class="file">&lt;submit-word&gt;.zip</span> <span class="desc">launch prep</span><br>
+      &nbsp;&nbsp;<span class="file">communication.zip</span><br>
+      &nbsp;&nbsp;<span class="file">bootstrap.zip</span> <span class="desc">fresh-chat onboarding</span><br>
+      &nbsp;&nbsp;<span class="file">continuity.zip</span> <span class="desc">handoff packets</span><br>
+      &nbsp;&nbsp;<span class="file">notebooklm-prep.zip</span> <span class="desc">optional</span><br>
+      &nbsp;&nbsp;<span class="file">memory-interface.zip</span> <span class="desc">optional, NexusMCP preview</span><br>
+      <br>
+      <span class="desc">Each zip is ready to drag into claude.ai.</span>
+    </div>
+  </div>
+</div>
+
+<div class="tip">
+  <strong>Quick Start adds two extras:</strong> the <code>agent-fleet-builder</code> skill (the A-grade rubric and wave methodology) and <code>canonical-skill-source</code> (governance — pick one source location for fleet edits, deploy from there). Plus a starter <code>MISSION_SELF_AUDIT.md</code> that walks the orchestrator through Wave 1 of self-improvement.
+</div>
+
+<h2><span class="step-num">3</span> Install the CLI Side</h2>
+
+<div class="card">
+<p>Unzip the download. Open Terminal in the unzipped folder. Run:</p>
+<pre><code>bash install.sh /path/to/your/repo</code></pre>
+<p>The installer creates <code>.claude/</code> directories and copies in agents, skills, rules, hooks, and missions. If your repo already has a <code>CLAUDE.md</code> or <code>settings.json</code>, the new versions land alongside as <code>*.fleet</code> so you can review and merge — nothing gets overwritten.</p>
+</div>
+
+<div class="tip">
+  Run <code>install.sh</code> against multiple repos by re-running it with each repo path. Each repo gets the same agent system installed.
+</div>
+
+<h3 style="margin-top:24px; font-size:1rem; font-weight:700">What gets installed</h3>
+
+<table>
+  <tr><th>Directory</th><th>Contents</th><th>When</th></tr>
+  <tr><td><code>.claude/agents/</code></td><td>One <code>.md</code> per enabled agent</td><td>Always</td></tr>
+  <tr><td><code>.claude/skills/</code></td><td>9 mandatory skills + selected optional + (Quick Start) maintenance skills</td><td>Always</td></tr>
+  <tr><td><code>.claude/rules/</code></td><td><code>repo-layout.md</code>, <code>compaction.md</code>, <code>hazmat.md</code></td><td>Always</td></tr>
+  <tr><td><code>.claude/hooks/</code></td><td>Selected hook scripts (chmod +x)</td><td>If any hook selected</td></tr>
+  <tr><td><code>.claude/missions/</code></td><td><code>MISSION_EXAMPLE.md</code> + (Quick Start) <code>MISSION_SELF_AUDIT.md</code></td><td>Always</td></tr>
+  <tr><td><code>.claude/settings.json</code></td><td>Hook event configuration</td><td>Always (selected hooks only)</td></tr>
+  <tr><td><code>CLAUDE.md</code></td><td>Project rules summary</td><td>Always</td></tr>
+</table>
+
+<!-- ═══════════════════════════ PAGE 2 ═══════════════════════════ -->
+
+<div class="page-break"></div>
+
+<h2><span class="step-num">4</span> Install the Chat Side</h2>
+
+<div class="card">
+<p>Open <code>chat/</code> in Finder (or your file manager). You'll see one <code>.zip</code> per chat skill.</p>
+<ol style="margin:12px 0 0 20px; line-height: 2">
+  <li>Open <strong>claude.ai</strong> (or Claude Desktop)</li>
+  <li>Click your name (bottom-left) → <strong>Settings</strong> → <strong>Capabilities</strong> → <strong>Skills</strong></li>
+  <li>Drag the <code>.zip</code> files in. Multi-select works — drop them all at once for bulk install.</li>
+  <li>Open a chat. Type your scope command (e.g. <code>/scope</code> or whatever word you chose) to enter investigation mode.</li>
+</ol>
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 700 70" xmlns="http://www.w3.org/2000/svg" style="max-width:640px">
+  <rect x="0" y="10" width="140" height="50" rx="8" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5"/>
+  <text x="70" y="40" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#9d174d">Settings → Skills</text>
+
+  <line x1="140" y1="35" x2="185" y2="35" stroke="#9d174d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="185" y="10" width="160" height="50" rx="8" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5"/>
+  <text x="265" y="40" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#9d174d">Drag .zip files</text>
+
+  <line x1="345" y1="35" x2="390" y2="35" stroke="#9d174d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="390" y="10" width="160" height="50" rx="8" fill="#fce7f3" stroke="#9d174d" stroke-width="1.5"/>
+  <text x="470" y="40" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#9d174d">Multi-select OK</text>
+
+  <line x1="550" y1="35" x2="595" y2="35" stroke="#9d174d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="595" y="10" width="100" height="50" rx="8" fill="#d1fae5" stroke="#065f46" stroke-width="1.5"/>
+  <text x="645" y="40" text-anchor="middle" font-family="DM Sans" font-size="12" font-weight="600" fill="#065f46">Ready!</text>
+</svg>
+</div>
+
+<h2><span class="step-num">5</span> Daily Workflow</h2>
+
+<p>Three slash commands in chat. The exact words come from the vocabulary you picked in the wizard — examples below use <code>scope</code> / <code>draft</code> / <code>submit</code>.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="max-width:640px">
+  <rect x="10" y="20" width="200" height="80" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="110" y="48" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="700" fill="#92400e">/scope</text>
+  <text x="110" y="68" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Investigate the codebase.</text>
+  <text x="110" y="83" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Plan the approach. Read only.</text>
+
+  <line x1="210" y1="60" x2="250" y2="60" stroke="#d97706" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="250" y="20" width="200" height="80" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="350" y="48" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="700" fill="#1e40af">/draft</text>
+  <text x="350" y="68" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Write the mission spec.</text>
+  <text x="350" y="83" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Visual mockups. Iterate.</text>
+
+  <line x1="450" y1="60" x2="490" y2="60" stroke="#2563eb" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="490" y="20" width="200" height="80" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+  <text x="590" y="48" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="700" fill="#065f46">/submit</text>
+  <text x="590" y="68" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Prepare for CLI launch.</text>
+  <text x="590" y="83" text-anchor="middle" font-family="DM Sans" font-size="11" fill="#78716c">Copy mission. Paste into CLI.</text>
+
+  <line x1="590" y1="100" x2="590" y2="125" stroke="#059669" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="440" y="125" width="300" height="44" rx="8" fill="#292524"/>
+  <text x="590" y="152" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#fafaf9">claude --agent &lt;worker&gt; --model opus</text>
+</svg>
+</div>
+
+<div class="card highlight">
+  <table>
+    <tr><th>Chat Command</th><th>What It Does</th><th>Can Write Files?</th></tr>
+    <tr><td><code>/scope</code></td><td>Investigate codebase, plan approach</td><td>No (read-only)</td></tr>
+    <tr><td><code>/draft</code></td><td>Write the mission spec as an artifact</td><td>No (artifacts only)</td></tr>
+    <tr><td><code>/submit</code></td><td>Format mission for CLI, give launch command</td><td>No (you copy/paste)</td></tr>
+  </table>
+</div>
+
+<div class="tip">
+  Vocabulary is customizable. If you called scoping "investigate" in the wizard, your command is <code>/investigate</code> instead of <code>/scope</code>. All chat skills, reference files, and the CLI <code>CLAUDE.md</code> use the words you picked.
+</div>
+
+<div class="tip" style="background:#fef2f2; border-color:#fecaca">
+  <strong style="color:#991b1b">Reserved slash commands.</strong> The wizard blocks vocabulary words that collide with Claude's built-in slash commands — <code>/plan</code>, <code>/clear</code>, <code>/init</code>, <code>/memory</code>, <code>/model</code>, <code>/agents</code>, <code>/skills</code>, <code>/hooks</code>, <code>/mcp</code>, <code>/permissions</code>, <code>/settings</code>, <code>/help</code>, <code>/loop</code>, <code>/schedule</code>, <code>/security-review</code>, <code>/ultrareview</code>, <code>/statusline</code>, and others. Typing them would trigger the built-in, not your skill. Pick a different word.
+</div>
+
+<h2><span class="step-num">6</span> Self-Maintenance (Quick Start)</h2>
+
+<p>If you used <strong>Quick Start</strong>, your fleet ships preconfigured to keep improving over time. Two extra skills and one starter mission do the work:</p>
+
+<div class="card">
+  <p style="font-weight:600; margin-bottom:8px">The maintenance kit</p>
+  <ul style="margin:8px 0 0 20px; line-height: 1.8">
+    <li><code>agent-fleet-builder</code> — the A-grade rubric across seven categories (subagents, skills, hooks, rules, memory, models, docs) plus the <code>references/wave-methodology.md</code> for disciplined, measurable iteration.</li>
+    <li><code>canonical-skill-source</code> — governance. Pick one source location for fleet edits; deploy from there. Without this, fleet content scatters across repos and drifts apart.</li>
+    <li><code>MISSION_SELF_AUDIT.md</code> — the starter mission. Walks the orchestrator through Wave 1: grade each category against the rubric, identify the lowest grade, propose Wave 2.</li>
+  </ul>
+</div>
+
+<div class="tip">
+  Run <code>MISSION_SELF_AUDIT</code> roughly monthly, or whenever the fleet feels off. The audit produces <code>docs/fleet-audits/WAVE_N_REPORT.md</code> — read it, decide which fix to ship next, then write a real mission for that fix.
+</div>
+
+<h2><span class="step-num">7</span> NexusMCP Preview</h2>
+
+<div class="card">
+  <p>Two skills depend on NexusMCP for cross-session memory: the CLI skill <code>nexusmcp</code> and the chat skill <code>memory-interface</code>. Both ship today carrying complete operating doctrine and tool references — but with a <strong>preview banner</strong> at the top.</p>
+  <p style="margin-top:12px">When NexusMCP launches (very soon), regenerate your fleet from the latest <code>fleet-generator.html</code> — the banners will be gone automatically. The skill bodies are already correct; the banner was the only difference.</p>
+</div>
+
+<h2>Quick Reference</h2>
+
+<div class="grid-2">
+  <div class="card">
+    <p style="font-weight:600; margin-bottom:8px">Launch the Worker (CLI)</p>
+<pre><code>cd ~/dev/my-project
+claude --agent &lt;worker&gt; \
+  --model opus \
+  --dangerously-skip-permissions</code></pre>
+    <p style="font-size:0.85rem; color: var(--muted)">Replace <code>&lt;worker&gt;</code> with the lowercase name you gave the worker (default: <code>woodstock</code>). Paste the mission file when prompted.</p>
+  </div>
+  <div class="card">
+    <p style="font-weight:600; margin-bottom:8px">Regenerate the Fleet</p>
+<pre><code># Open fleet-generator.html
+# in your browser. Quick Start
+# or wizard. Download.</code></pre>
+    <p style="font-size:0.85rem; color: var(--muted)">No CLI tooling needed. The HTML works on file:// and is fully self-contained.</p>
+  </div>
+</div>
+
+<h2>Chat slash commands</h2>
+
+<p>Every chat skill maps to a slash command. The exact command name comes from your wizard vocabulary — examples below assume <code>scope</code> / <code>draft</code> / <code>submit</code> as the picks. Skills auto-invoke when the user types the command OR when the user's message matches the skill's trigger phrases.</p>
+
+<table>
+  <tr><th>Command</th><th>Mode</th><th>What it does</th><th>Trigger phrases</th><th>Writes?</th></tr>
+  <tr><td><code>/scope</code></td><td>Mandatory</td><td>Investigation and planning. Reads files, runs read-only shell, accumulates findings in the Workspace artifact.</td><td>scope mode, investigate, plan, what should we build, figure out what needs to change</td><td>No (read-only)</td></tr>
+  <tr><td><code>/draft</code></td><td>Mandatory</td><td>Specification refinement. Markdown artifact for the mission file, HTML/SVG for mockups. Stores the final draft in Workspace.</td><td>draft mode, refine the spec, write the mission, polish it</td><td>No (artifacts only)</td></tr>
+  <tr><td><code>/submit</code></td><td>Mandatory</td><td>Format the draft as a copy-paste mission and give the human the launch command (<code>claude --agent &lt;worker&gt; --model opus --dangerously-skip-permissions</code>).</td><td>submit it, send it, queue it, dispatch it, launch it</td><td>No (you copy/paste)</td></tr>
+  <tr><td><code>/communication</code></td><td>Always-on</td><td>Verbosity, emoji, and uncertainty preferences for chat responses. Mirrors the CLI side.</td><td>(passive — applies to every response)</td><td>No</td></tr>
+  <tr><td><code>/bootstrap</code></td><td>Mandatory</td><td>Onboarding flow for a fresh chat. Asks for repo, reads CLAUDE.md / README / git log, queries memory if available, reports state.</td><td>bootstrap, get started, onboard, fresh chat, session start</td><td>No (read-only)</td></tr>
+  <tr><td><code>/continuity</code></td><td>Mandatory</td><td>Cross-session handoff. Writes state to memory backend if available; otherwise produces a paste-able HANDOFF PACKET artifact.</td><td>continuity, checkpoint, package a handoff, prepare to switch chats</td><td>Memory backend only</td></tr>
+  <tr><td><code>/notebooklm-prep</code></td><td>Optional</td><td>Tailored audio overview for a specific listener. Curates sources via web search; writes the customization prompt. Direct mode (notebooklm MCP) or paste mode.</td><td>NotebookLM, audio overview, podcast prep, interview prep, help me learn X</td><td>No (notebook/paste only)</td></tr>
+  <tr><td><code>/memory-interface</code></td><td>Optional (NexusMCP preview)</td><td>Operating guide for the memory backend — semantic search, KG, diary, query construction. Ships in preview state until NexusMCP launches.</td><td>query memory, semantic search, knowledge graph, diary, AAAK, filesystem wins</td><td>Memory backend only</td></tr>
+</table>
+
+<h2>CLI skills</h2>
+
+<p>Every skill in <code>.claude/skills/</code> auto-loads when the worker / orchestrator encounters language matching the skill's trigger phrases. Skills with a <code>references/</code> folder support progressive disclosure — the SKILL.md is short; the references carry depth.</p>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Mandatory (always shipped)</h3>
+
+<table>
+  <tr><th>Skill</th><th>What it does</th><th>Triggers</th></tr>
+  <tr><td><code>pre-commit</code></td><td>Mandatory checklist before every git commit — scope, identity, tests, anti-patterns, commit message format.</td><td>ship a commit, run the pre-commit checklist, identity check, scope check</td></tr>
+  <tr><td><code>self-review</code></td><td>Final-commit quality gate before the reviewer subagent runs. Mission scope correspondence, formatting noise, orphan code, secrets scan.</td><td>self-review, run self-review, final-commit verification, scope creep</td></tr>
+  <tr><td><code>mission-template</code></td><td>Standard structure for missions. Header, blast-radius scope, files-to-modify, parts-with-verify, success criteria.</td><td>use the mission template, mission lifecycle, mission sections, write a mission</td></tr>
+  <tr><td><code>git-workflow</code></td><td>Branch naming, commit-message format (<code>type(scope): description</code>), push protocol, prohibited operations.</td><td>git workflow, branch, commit message format, never commit to main</td></tr>
+  <tr><td><code>communication</code></td><td>Verbosity, emoji, uncertainty preferences for the agents. Always active.</td><td>communication preferences, how should I respond, verbosity, when uncertain</td></tr>
+  <tr><td><code>human-patterns</code></td><td>Working patterns of the human operator. Brevity, decisiveness, no preambles, audit trail matters.</td><td>working style, how does the human work, retraction, lane discipline</td></tr>
+  <tr><td><code>bootstrap</code></td><td>CLI session-startup ritual. Read CLAUDE.md, README, git log; report state in one paragraph; wait for direction.</td><td>bootstrap, session start, what's in flight, getting started</td></tr>
+  <tr><td><code>agent-commits</code></td><td>Per-agent git author identity. Each commit is signed so <code>git log</code> shows who did what.</td><td>commit identity, audit trail, git log --author, set identity</td></tr>
+  <tr><td><code>safety-rules</code></td><td>The 7 always-on hazmat rules: SPEC-BEFORE-REALITY, LOOK-BEFORE-WRITE, WRITE-SURFACE, NO-OVERWRITE, MISSION-SCOPE-IS-A-BOUNDARY, ASK-WHEN-CROSSING-LANES, REPORT-CONFLICTS.</td><td>safety rules, lane discipline, hazmat, don't overwrite, conflict</td></tr>
+  <tr><td><code>subagent-orchestration</code></td><td>Standard subagent flow — when the worker spawns the pre-flight scanner, reviewer, and specialists. Always active.</td><td>spawn, subagent, Task tool, pre-flight, post-flight, who reviews this</td></tr>
+</table>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Optional (wizard checkbox)</h3>
+
+<table>
+  <tr><th>Skill</th><th>What it does</th><th>Triggers</th></tr>
+  <tr><td><code>blast-radius</code></td><td>Pre-flight protocol when modifying existing code. Identifies all call sites, classifies each, produces the Blast Radius Report.</td><td>blast radius, MUST_UPDATE, RESCOPE_REQUIRED, rename, signature change, deprecation</td></tr>
+  <tr><td><code>mission-scoping</code></td><td>Tier caps for mission size. Tier 1 ≤3 edits, Tier 2 UI-bounded ≤6, Tier 3 net-new no cap, atomic exception for cross-layer.</td><td>mission scoping, Tier 1, UI-bounded, net-new, atomic exception, split the mission</td></tr>
+  <tr><td><code>tdd</code></td><td>RED → GREEN → REFACTOR → COMMIT cycle for production code. Never write production code without a failing test first.</td><td>TDD cycle, write the test first, RED GREEN REFACTOR, test-driven</td></tr>
+  <tr><td><code>deep-research</code></td><td>Forked-subagent research protocol — read 5–10 files, return a structured synthesis. Saves context budget on the parent.</td><td>dig into, investigate, look across files, find examples of, deep-dive</td></tr>
+  <tr><td><code>documentation-rev</code></td><td>Same-commit doc edit discipline. Behavior-changing missions ship doc updates in the same commit series.</td><td>documentation rev, same-commit doc edit, rev bump, README update</td></tr>
+  <tr><td><code>source-of-truth</code></td><td>Designate canonical documents. When canon and code disagree, stop and resolve with the human.</td><td>source of truth, canonical, locked decision, which doc wins</td></tr>
+  <tr><td><code>branch-hygiene</code></td><td>One task per branch. Clean up after merge. Never commit directly to integration branches.</td><td>branch, branch hygiene, one task per branch, cleanup</td></tr>
+  <tr><td><code>nexusmcp</code></td><td>Persistent memory across sessions via NexusMCP — temporal KG, diary, fact invalidation. Ships in preview until NexusMCP launches.</td><td>remember this, recall, persistent memory, knowledge graph, diary</td></tr>
+</table>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Quick Start (project mode) adds</h3>
+
+<table>
+  <tr><th>Skill</th><th>What it does</th><th>Triggers</th></tr>
+  <tr><td><code>agent-fleet-builder</code></td><td>The A-grade rubric across 7 categories (subagents, skills, hooks, rules, memory, models, docs) plus wave-methodology references. Used by self-audit missions.</td><td>fleet audit, A-grade, wave methodology, agent fleet quality, rubric</td></tr>
+  <tr><td><code>canonical-skill-source</code></td><td>Pick one source location for fleet edits; deploy from there. Without this, fleet content scatters across repos and drifts.</td><td>add a skill, create a rule, new agent, canonical source, deploy agents</td></tr>
+</table>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Workshop mode adds</h3>
+
+<table>
+  <tr><th>Skill</th><th>What it does</th><th>Triggers</th></tr>
+  <tr><td><code>fleet-generator-anatomy</code></td><td>Where every data structure in <code>fleet-generator.html</code> lives, how skills/agents/hooks are defined, the substitution flow, the zip layout. Read before editing the generator.</td><td>anatomy, where does X live, how do I add a skill, edit fleet-generator</td></tr>
+</table>
+
+<h2>Optional Hooks Reference</h2>
+
+<table>
+  <tr><th>Hook</th><th>Event</th><th>What it does</th></tr>
+  <tr><td><code>log-stop-failure</code></td><td>Stop</td><td>Append exit codes to <code>~/.claude/audit/stop-failures.log</code></td></tr>
+  <tr><td><code>log-instructions-loaded</code></td><td>PostStart</td><td>Audit which CLAUDE.md / rules loaded each session</td></tr>
+  <tr><td><code>gate-push</code></td><td>PreToolUse Bash(git push)</td><td>Skip the prompt on routine git push</td></tr>
+  <tr><td><code>log-subagent-start</code></td><td>SubagentStart</td><td>Structural audit of every subagent spawn</td></tr>
+  <tr><td><code>log-subagent-stop</code></td><td>SubagentStop</td><td>Closes the start/stop pair with exit reason and status</td></tr>
+  <tr><td><code>save-pre-compact</code></td><td>PreCompact</td><td>Lossless transcript dump before compaction summarizes</td></tr>
+  <tr><td><code>verify-post-compact</code></td><td>PostCompact</td><td>Diagnostic note about whether the active mission survived</td></tr>
+  <tr><td><code>enforce-write-scope</code></td><td>PreToolUse Edit/Write</td><td>Gates writes against the active mission's allowed file list. Default WARN; flip to BLOCK with <code>CLAUDE_HOOK_MODE=block</code>.</td></tr>
+  <tr><td><code>prompt-memory-curation</code></td><td>Stop</td><td>Nudges agent to write a learning note when the session was substantive</td></tr>
+</table>
+
+<div class="footer">
+  Fleet Generator — Simple Machines, 2026<br>
+  Generated by fleet-generator.html
+</div>
+
+</body>
+</html>
