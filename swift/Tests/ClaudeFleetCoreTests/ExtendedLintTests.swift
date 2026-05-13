@@ -300,8 +300,11 @@ final class ExtendedLintTests: XCTestCase {
     // MARK: - Real-library lints (skipped if absent) — must not crash
 
     func testForgeLintsRun() throws {
-        let url = URL(fileURLWithPath: "/Users/bob/devlop/forge/.claude")
-        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "forge absent")
+        guard let path = ProcessInfo.processInfo.environment["ANVIL_FIXTURE_FORGE"] else {
+            throw XCTSkip("ANVIL_FIXTURE_FORGE not set")
+        }
+        let url = URL(fileURLWithPath: path)
+        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "fixture absent at \(url.path)")
         let lib = try LibraryLoader.load(url)
         let engine = RuleEngine(rules: RuleEngine.defaultRules)
         _ = engine.run(on: lib)

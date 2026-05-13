@@ -131,31 +131,45 @@ final class LibraryLoaderTests: XCTestCase {
     // MARK: - Real-library smoke tests (skipped when fixture dirs absent)
 
     func testSmokeForge() throws {
-        let url = URL(fileURLWithPath: "/Users/bob/devlop/forge/.claude")
-        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "forge fixture absent")
+        guard let path = ProcessInfo.processInfo.environment["ANVIL_FIXTURE_FORGE"] else {
+            throw XCTSkip("ANVIL_FIXTURE_FORGE not set")
+        }
+        let url = URL(fileURLWithPath: path)
+        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "fixture absent at \(url.path)")
         let lib = try LibraryLoader.load(url)
         XCTAssertGreaterThan(lib.agents.count, 0)
         XCTAssertGreaterThan(lib.skills.count, 0)
         XCTAssertGreaterThan(lib.hooks.count, 0)
         XCTAssertTrue(lib.loadFindings.filter { $0.ruleID == "S002" }.isEmpty,
-                      "forge should have no parser failures")
+                      "fixture should have no parser failures")
     }
 
-    func testSmokeSimpleMachinesDocs() throws {
-        let url = URL(fileURLWithPath: "/Users/bob/dev_docs/simple-machines-docs/.claude")
-        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "SM-docs fixture absent")
+    func testSmokeCanonicalMapHookShape() throws {
+        guard let path = ProcessInfo.processInfo.environment["ANVIL_FIXTURE_DOCS"] else {
+            throw XCTSkip("ANVIL_FIXTURE_DOCS not set")
+        }
+        let url = URL(fileURLWithPath: path)
+        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "fixture absent at \(url.path)")
         let lib = try LibraryLoader.load(url)
         XCTAssertGreaterThan(lib.agents.count, 0)
         XCTAssertGreaterThan(lib.skills.count, 0)
         XCTAssertGreaterThan(lib.hooks.count, 0,
-                             "SM-docs uses canonical map hook shape; loader should normalize")
+                             "fixture uses canonical map hook shape; loader should normalize")
         XCTAssertTrue(lib.loadFindings.filter { $0.ruleID == "S002" }.isEmpty,
-                      "SM-docs should have no parser failures")
+                      "fixture should have no parser failures")
     }
 
     func testSmokeSampleOut() throws {
-        let url = URL(fileURLWithPath: "/Users/bob/devlop/fleet-generator/sample_out/cli")
-        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "sample_out absent")
+        // Resolve sample_out relative to this test file so the test runs
+        // anywhere the repo is checked out. Repo root is four levels up
+        // from swift/Tests/ClaudeFleetCoreTests/LibraryLoaderTests.swift.
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()  // ClaudeFleetCoreTests/
+            .deletingLastPathComponent()  // Tests/
+            .deletingLastPathComponent()  // swift/
+            .deletingLastPathComponent()  // <repo>/
+        let url = repoRoot.appendingPathComponent("sample_out/cli")
+        try XCTSkipUnless(FileManager.default.fileExists(atPath: url.path), "sample_out absent at \(url.path)")
         let lib = try LibraryLoader.load(url)
         XCTAssertGreaterThan(lib.agents.count, 0)
         XCTAssertGreaterThan(lib.skills.count, 0)
