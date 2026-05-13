@@ -394,7 +394,40 @@
 </svg>
 </div>
 
-<h2><span class="step-num">5</span> Daily Workflow</h2>
+<h2><span class="step-num">5</span> Updating Chat Skills After You Install Them</h2>
+
+<div class="card highlight">
+<p><strong>The constraint:</strong> Claude App (claude.ai web and Claude Desktop) loads skills into a chat session when the chat is initiated. Once that chat is running, you can't update its skills. New versions you upload won't take effect in chats that were already open when you uploaded.</p>
+</div>
+
+<p>This matters because fleets evolve. You'll fix a skill, want it live, and find the old version still running in your active chat. Here's the workaround.</p>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">To get a skill update into a running chat</h3>
+
+<div class="card">
+<ol style="margin:0 0 0 20px; line-height: 2">
+  <li>Upload the new <code>.zip</code> in Settings &rarr; Capabilities &rarr; Skills (replaces the old one).</li>
+  <li>Quit the Claude app entirely. Restart it.</li>
+  <li>In your OLD chat (the one with the stale skills), run your <code>continuity</code> command. The skill writes a <strong>HANDOFF PACKET</strong> artifact summarizing the chat state.</li>
+  <li>Start a NEW chat. Paste the HANDOFF PACKET. The new chat picks up your fresh skills automatically.</li>
+</ol>
+</div>
+
+<div class="tip">
+  The <code>continuity</code> skill exists specifically to make this transition cheap. It packages the active mission, decisions, and pending work into a compact paste-able artifact so you don't lose context across the chat boundary.
+</div>
+
+<h3 style="margin-top:18px; font-size:1rem; font-weight:700">Claude Code has no such limitation</h3>
+
+<div class="card">
+<p>Claude Code reads <code>.claude/skills/&lt;name&gt;/SKILL.md</code> fresh from disk on every invocation. Edit the file, save it, and the next command picks up the new version. No restart needed. This is one of the major behavioral differences between the two surfaces and worth keeping in mind when you choose where to iterate on a skill.</p>
+</div>
+
+<div class="tip" style="background:#eff6ff; border-color:#bfdbfe">
+  <strong>Workflow tip:</strong> Iterate on skill content from the CLI side first. When the SKILL.md is settled, regenerate the fleet from the HTML to refresh the chat-side <code>.zip</code>, then upload it.
+</div>
+
+<h2><span class="step-num">6</span> Daily Workflow</h2>
 
 <p>Three slash commands in chat. The exact words come from the vocabulary you picked in the wizard — examples below use <code>scope</code> / <code>draft</code> / <code>submit</code>.</p>
 
@@ -443,7 +476,7 @@
   <strong style="color:#991b1b">Reserved slash commands.</strong> The wizard blocks vocabulary words that collide with Claude's built-in slash commands — <code>/plan</code>, <code>/clear</code>, <code>/init</code>, <code>/memory</code>, <code>/model</code>, <code>/agents</code>, <code>/skills</code>, <code>/hooks</code>, <code>/mcp</code>, <code>/permissions</code>, <code>/settings</code>, <code>/help</code>, <code>/loop</code>, <code>/schedule</code>, <code>/security-review</code>, <code>/ultrareview</code>, <code>/statusline</code>, and others. Typing them would trigger the built-in, not your skill. Pick a different word.
 </div>
 
-<h2><span class="step-num">6</span> Self-Maintenance (Quick Start)</h2>
+<h2><span class="step-num">7</span> Self-Maintenance (Quick Start)</h2>
 
 <p>If you used <strong>Quick Start</strong>, your fleet ships preconfigured to keep improving over time. Two extra skills and one starter mission do the work:</p>
 
@@ -460,7 +493,7 @@
   Run <code>MISSION_SELF_AUDIT</code> roughly monthly, or whenever the fleet feels off. The audit produces <code>docs/fleet-audits/WAVE_N_REPORT.md</code> — read it, decide which fix to ship next, then write a real mission for that fix.
 </div>
 
-<h2><span class="step-num">7</span> NexusMCP Preview</h2>
+<h2><span class="step-num">8</span> NexusMCP Preview</h2>
 
 <div class="card">
   <p>Two skills depend on NexusMCP for cross-session memory: the CLI skill <code>nexusmcp</code> and the chat skill <code>memory-interface</code>. Both ship today carrying complete operating doctrine and tool references — but with a <strong>preview banner</strong> at the top.</p>
