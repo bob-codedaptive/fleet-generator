@@ -60,3 +60,9 @@ swift/.build/
 swift/.swiftpm/
 *.xcodeproj
 DerivedData/
+
+# Installed fleet (when fleet-generator itself is the install target)
+/.claude/
+
+# Wizard output zips
+web/*.zip
