@@ -21,21 +21,21 @@ copy. The output must be an installable package with clear instructions.
 Study these as the reference implementation. The generated output
 must match this quality and structure:
 
-1. `/Users/bob/devlop/fulcrum/.claude/` — full agent infrastructure
+1. `~/devlop/fulcrum/.claude/` — full agent infrastructure
    - `agents/` — agent manifest format, YAML frontmatter, role instructions
    - `skills/` — skill format with SKILL.md + references/ subdirectories
    - `hooks/` — hook scripts
    - `rules/` — always-on rules
    - `settings.json` — settings format
-2. `/Users/bob/devlop/fulcrum/CLAUDE.md` — project CLAUDE.md format
-3. `/Users/bob/dev_docs/simple-machines-docs/shared/skills_desktop/` — chat skill format
+2. `~/devlop/fulcrum/CLAUDE.md` — project CLAUDE.md format
+3. `~/dev_docs/simple-machines-docs/shared/skills_desktop/` — chat skill format
    - `scope/SKILL.md` — scope mode chat skill
    - `draft/SKILL.md` — draft mode chat skill  
    - `submit/SKILL.md` — submit mode chat skill
-4. `/Users/bob/dev_docs/simple-machines-docs/shared/agents_source/_skills/` — CLI skill format
+4. `~/dev_docs/simple-machines-docs/shared/agents_source/_skills/` — CLI skill format
    - Every skill: read the SKILL.md to understand the depth and quality expected
    - Skills with `references/` directories: understand progressive disclosure
-5. `/Users/bob/dev_docs/simple-machines-docs/tools/fleet-generator/fleet-generator.html` — current broken version (UI works, content generation is wrong)
+5. `~/dev_docs/simple-machines-docs/tools/fleet-generator/fleet-generator.html` — current broken version (UI works, content generation is wrong)
 
 ## Requirements
 
@@ -161,7 +161,7 @@ echo "  # paste your mission file content"
 - Skills reference
 - Communication preferences from wizard
 
-Model these on the actual agents in `/Users/bob/devlop/fulcrum/.claude/agents/`.
+Model these on the actual agents in `~/devlop/fulcrum/.claude/agents/`.
 
 **Skills** must include:
 - YAML frontmatter with name, description (trigger phrases included)
