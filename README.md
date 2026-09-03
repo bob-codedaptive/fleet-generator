@@ -115,8 +115,6 @@ fleet-generator/
 │   ├── SPEC.md                # how it is built, for editing it
 │   └── archive/
 ├── sample_out/                # a full generated bundle, for reading
-├── src/fleet_generator/       # Python scaffold, reserved, currently empty
-├── pyproject.toml
 └── README.md
 ```
 
