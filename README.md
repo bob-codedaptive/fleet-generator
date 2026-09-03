@@ -1,4 +1,19 @@
+<div align="center">
+
 # fleet-generator
+
+### A multi-agent coding fleet, generated from one HTML file.
+
+</div>
+
+<div align="center">
+
+![no install](https://img.shields.io/badge/install-none%20%C2%B7%20one%20HTML%20file-success)
+![targets](https://img.shields.io/badge/targets-Claude%20Code%20%C2%B7%20Codex-blue)
+[![memory](https://img.shields.io/badge/optional-MOOTx01%20memory-blueviolet)](https://github.com/codedaptive/mootx01-ce)
+[![license](https://img.shields.io/github/license/bob-codedaptive/fleet-generator?color=lightgrey)](LICENSE)
+
+</div>
 
 A browser wizard that generates a working agent fleet for Claude Code or
 Codex. One HTML file, no install, no build step. Open it, answer some
