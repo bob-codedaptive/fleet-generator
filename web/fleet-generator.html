@@ -347,6 +347,11 @@ const OPTIONAL_SKILLS = [
   { key:'documentation-rev',label:'Doc revision discipline',    desc:'Update docs in the same commit as code.' },
   { key:'source-of-truth',  label:'Source of truth tracking',   desc:'Designate canonical documents.' },
   { key:'branch-hygiene',   label:'Branch hygiene',             desc:'One task per branch. Clean up after merge.' },
+  { key:'gate-procedures', label:'Gate procedures (review)',   desc:'A test that passes before the fix is not a gate.' },
+  { key:'diagnosing-bugs', label:'Diagnosing bugs',           desc:'Build a failing loop before forming a theory.' },
+  { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
+  { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
+  { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
   { key:'nexusmcp',         label:'NexusMCP persistent memory', desc:'Cross-session memory via knowledge graph.' }
 ];
 
@@ -1726,6 +1731,300 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'gate-procedures': {
+    desc: "How a reviewer decides whether a gate proves anything - falsification against the pre-fix commit, running the artifact rather than reading it, and what a rejection has to carry.",
+    use: "Reviewing a returned diff. Deciding whether a test gates the change it claims to. Writing an approval or rejection. A change claims to be already fixed. Judging whether a green suite is evidence.",
+    body: `# Gate procedures
+
+## A green suite is not evidence
+
+Measured across eight parallel implementations of one identical task:
+every code review passed, and two of the resulting binaries crashed on
+ordinary input. A script that built and ran each artifact found six of the
+eight failures in seconds.
+
+Run it, then read the diff, then consider the suite. The suite is the
+weakest of the three and the one most often quoted.
+
+## The gate must fail before the fix
+
+A test that passes against the pre-fix code proves nothing. It is not a
+weak gate; it is not a gate.
+
+For every test a change claims as proof:
+
+1. Check out the commit before the fix
+2. Run the test
+3. It must fail
+
+A report without both results has not shown you the gate works. Ask for
+them. "Tests pass" is a statement about the present tense only.
+
+Watch the near miss: a test that fails pre-fix for the wrong reason, a
+compile error rather than the assertion. Also not a gate.
+
+## Read what the test asserts, not what it is named
+
+A test named testDeletionRemovesRow that asserts "no row with the flag
+set" passes when the flag is cleared and the row survives, still holding
+the data that was supposed to be deleted. The name says deletion; the
+assertion says flag.
+
+Where the property is a side effect, the assertion has to reach the side
+effect. Asserting on a return value is not asserting on what persisted.
+
+## Inherited verdicts are claims, not facts
+
+A change that says "already fixed by X" is offering a conclusion someone
+else reached. Test it. In one case the earlier fix covered only the
+wholesale path while the per-item path never reached it. Taking the claim
+would have closed a live defect twice.
+
+## What a rejection has to carry
+
+A finding without the means to act on it is a complaint.
+
+- The anchor: file and line
+- The observed behaviour, not the suspected one: an exit code, an output,
+  a row that survived
+- What correct looks like
+- The test that would prove it, and that it fails pre-fix
+
+Rank by what reaches a user first, not by what is easiest to explain.
+
+## Send findings as you establish them
+
+Batched findings arrive after the author has moved on. In one review,
+rounds seven and eight landed after the commit and were never acted on.
+
+If you are on round eight arguing about wording, stop and escalate with
+both positions stated plainly. A reviewer that cannot close is as
+expensive as an author that cannot.
+`
+  },
+
+  'handoff': {
+    desc: "Write your own handoff before a compact or a fresh session, for a colleague picking the work up cold. Context, not commands.",
+    use: "About to compact. Context filling with work unfinished. Starting clean. Handing to another agent or model. Ending a session with more to do.",
+    body: `# Writing your own handoff
+
+A summarizer does not know which detail carried the weight. You do.
+
+Write it for a colleague picking this up cold. They can read the code and
+whatever memory store you have. They cannot read this conversation, and
+everything that lived only here is about to be gone.
+
+## Two variants
+
+RESUME - the same work continues after a compact. The next context
+inherits the thread and needs state and open threads.
+
+COLD START - the context is spent and the next session begins clean,
+possibly on a different model, possibly days later. Lead with what you are
+building and why; what you were doing when it stopped goes last.
+
+Say which you are writing at the top.
+
+## Give context, not commands
+
+The instinct is a checklist. Resist it. A checklist says what to do
+without saying why, so the first situation that does not match leaves the
+reader with nothing.
+
+Write what you learned the hard way. What you tried. What broke and how.
+Why you went one direction rather than another, especially where the
+choice would look arbitrary from outside.
+
+Skip anything they would get from reading the code.
+
+## What tends to carry weight
+
+- What you are building and why. Two paragraphs in a cold start, a line in
+  a resume
+- Where things stand: done, in progress, untouched. Name the in-progress
+  thing precisely - a branch, a ticket, a half-edited file
+- Decisions and the thinking behind them, especially the arbitrary-looking
+  ones. "We used the archive path because an archived record read as
+  missing and cascade-deleted four dependents" survives; "use the archive
+  path" does not
+- What failed and how. The failure mode matters more than the fix
+- Exact strings: errors, config keys, response shapes, commit hashes,
+  file:line anchors. Quote them verbatim. A paraphrased error is neither
+  searchable nor recognisable
+- What is still open, including what nobody decided
+- Where you would pick up, and why you think so
+
+## Identify it so it can be found
+
+More than one agent may work from the same directory on different things,
+and a later session searching for its handoff will see all of them.
+
+Open the body with:
+
+    repo:    <repository name>
+    agent:   <your agent name>
+    branch:  <the branch, or none>
+    written: <ISO timestamp>
+
+A reader discards on repo, then agent, then takes the most recent. Without
+those three they cannot tell your handoff from another agent's, and a
+wrong handoff reads as perfectly coherent context for work nobody was
+doing.
+
+## Where it goes
+
+Into your memory store if you have one, at a stable key. Into the
+conversation if you do not, so it can be pasted somewhere durable.
+
+Check the write landed. A handoff believed filed and not filed is worse
+than one you knew to copy by hand.
+
+## Tone
+
+A colleague catching someone up, not a manual. No "you must", no "always",
+no "never". They will use their own judgment once oriented, and that is
+the point.
+`
+  },
+
+  'plan-capture': {
+    desc: "File an approved plan the moment it is approved. A plan lives in the session and nowhere else.",
+    use: "A plan was just approved, or a decomposition agreed. About to commit work that came from a plan. Asked what was planned for this project. Resuming and looking for a previous session's plan.",
+    body: `# Capturing the plan
+
+## What counts as a plan
+
+A plan is the multi-step thing agreed with the operator: several units of
+work, their dependency order, and the reasoning that produced the split.
+
+It is not a task and it is not a brief.
+
+| Artifact | Held by | Already recorded |
+| --- | --- | --- |
+| Plan | the interactive orchestrator | nowhere, this is the gap |
+| Task | the tracker | ticket, issue, task file |
+| Brief | a dispatched worker | ephemeral, deliberately |
+
+A dispatched worker does not know the plan. Its brief carries what to
+build and nothing about the units either side of it, which is the point of
+the brief rule. If you are holding a brief rather than a plan, this does
+not apply to you.
+
+## At approval
+
+File it the moment it is agreed, to a stable key:
+
+    plans/<project>/<plan-slug>
+
+The plan text verbatim, not a summary. A summary is what the next session
+would have written for itself; the plan is what it cannot reconstruct.
+Include every step, the dependency order, and the reasoning behind the
+ordering.
+
+Re-approving a plan updates that record rather than filing a second one.
+
+## Before a commit
+
+Before committing work that came from a plan, check the plan is filed. If
+it is not, file it now, while you still have it. Then commit. Do not hold
+the commit for it.
+
+## Keep it current
+
+Record which parts are done, in flight, and untouched, and anything the
+operator ruled on mid-plan that changed it. A plan record that says
+everything is untouched, three steps in, is worse than none.
+
+## Why the whole plan and not a path
+
+Working directories are often gitignored. A plan file there does not
+travel to another machine, a fresh clone, or a teammate. A handoff that
+says "see the plan file" is a dead reference to anyone who does not
+already have your disk.
+
+## Reading one back
+
+A drawer of plans per project gives you the plan history on its own terms:
+what was planned, in order, including plans approved and never finished.
+That last set is hard to recover any other way.
+`
+  },
+
+  'diagnosing-bugs': {
+    desc: "Build a feedback loop that fails on the bug before forming any theory. Adapted from mattpocock/skills (MIT).",
+    use: "A bug is reported. A test fails intermittently. Behaviour differs between environments. You are about to guess at a cause.",
+    body: `# Diagnosing bugs
+
+## Build the failing loop first
+
+Before reading code to build a theory, get a command that fails on this
+bug, reliably, in under a few seconds.
+
+If you catch yourself reading code to form a hypothesis before that
+command exists, stop. Jumping to a hypothesis is the exact failure this
+prevents.
+
+A real example: a rebase was reported as "FAILED with conflicts" and an
+operator spent an hour hunting merge conflicts that did not exist. The
+cause was a missing binary on PATH. Nobody had run the rebase and looked.
+
+## Then rank hypotheses, and make them falsifiable
+
+Write three to five candidate causes before testing any of them. For each,
+state what you would observe if it were true and what you would observe if
+it were not.
+
+Anchoring on the first plausible cause is the most common way a diagnosis
+goes wrong, and it is invisible from inside: the first theory always feels
+sufficient.
+
+## Tighten the loop as you go
+
+A loop is a product, not a prerequisite. Faster, sharper, more
+deterministic. Every second you remove you pay back on every iteration.
+
+## Report what you observed
+
+"This looks wrong" is a guess wearing a fact's clothes. "Input X produced
+exit 133" is a fact. Report the file, the exit code, the last line of
+stderr.
+
+Distinguish a content problem from an environment problem from a
+bookkeeping problem. Most stubborn bugs are the last two.
+`
+  },
+
+  'merge-conflicts': {
+    desc: "Resolve by intent traced to each side's primary source. Never abort. Adapted from mattpocock/skills (MIT).",
+    use: "A merge or rebase stopped with conflicts. Deciding which side to keep. A conflict in a file both branches restructured.",
+    body: `# Resolving merge conflicts
+
+Find the primary source for each side: the commit, the ticket, the review
+that produced it. Understand why each change was made before choosing
+between them.
+
+Preserve both intents where they are compatible. Where they are not, pick
+the one matching the merge's stated goal and note the trade-off in the
+merge message.
+
+Do not invent new behaviour to bridge two sides. A resolution that is
+neither branch's intent is a change nobody reviewed.
+
+Always resolve. Never abort: an abort discards the information you just
+gathered and the next attempt starts from nothing.
+
+## The failure worth naming
+
+Resolving by heuristic - keep both, take theirs, take ours - without
+reading either side's intent produces something that compiles and is
+wrong. It is also invisible in review, because the diff against each
+parent looks reasonable.
+
+If two branches both restructured the same file, diff each against the
+merge base before deciding anything.
+`
+  },
+
   'blast-radius': {
     desc: "Pre-flight protocol for missions that modify, remove, rename, or alter the semantics of existing symbols on {{project}}. Documents call-site impact and required updates BEFORE code changes are made.",
     use: "Mission renames or removes a symbol. Mission changes a function signature. Mission deprecates a method. Mission alters schema fields, enum cases, or shared constants. Trigger phrases: blast radius, MUST_UPDATE, INTENTIONALLY_LEFT, RESCOPE_REQUIRED, rename, signature change, symbol removal, deprecation, migration, orphan deprecation, bridge helper, partial migration, call sites.",
