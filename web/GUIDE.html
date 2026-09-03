@@ -500,6 +500,72 @@
   <p style="margin-top:12px">When NexusMCP launches (very soon), regenerate your fleet from the latest <code>fleet-generator.html</code> — the banners will be gone automatically. The skill bodies are already correct; the banner was the only difference.</p>
 </div>
 
+
+<h2 id="targets">9 &nbsp;Target and Memory</h2>
+
+<p>Step 5 carries two choices that change what lands in the zip.</p>
+
+<h3>Target</h3>
+
+<p>Which assistant reads the fleet. The doctrine is identical either way;
+only the packaging differs.</p>
+
+<table>
+<tr><th>Choice</th><th>What you get</th></tr>
+<tr><td><b>Claude Code</b></td><td><code>.claude/</code> with agents, skills, commands and hooks. The default.</td></tr>
+<tr><td><b>Codex</b></td><td><code>AGENTS.md</code> at the repository root, with the roles inlined and the skills referenced by path.</td></tr>
+<tr><td><b>Both</b></td><td>Both entry points from one source. The <code>AGENTS.md</code> states that the skill files are authoritative, because two descriptions of one fleet drift the moment either is edited.</td></tr>
+</table>
+
+<h3>Memory &mdash; MOOTx01</h3>
+
+<p>A checkbox, off by default. On, it adds three commands for the compact
+ritual:</p>
+
+<table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>/prepare-for-compact</code></td><td>Writes the handoff in the agent's own words and files it to the estate, then tells you to run <code>/compact</code>.</td></tr>
+<tr><td><code>/start-clean</code></td><td>Same, but a cold-start handoff: assumes nothing carries over, so it leads with what you are building and why.</td></tr>
+<tr><td><code>/recover-from-compact</code></td><td>Reads the handoff, checks the repository against what it claims, and reports orientation without starting work.</td></tr>
+</table>
+
+<p>The <code>handoff</code> and <code>plan-capture</code> skills ship in the
+base bundle regardless. They are written against &ldquo;your memory
+system&rdquo;, so they work with any store; the checkbox adds what makes the
+ritual one keystroke instead of a paragraph typed by hand.</p>
+
+<p><b>Two agents working from one directory.</b>
+<code>/recover-from-compact</code> filters candidate handoffs on repository,
+then agent, then recency, and stops and asks when more than one survives. A
+wrong handoff does not announce itself: it reads as perfectly coherent
+context for work nobody was doing.</p>
+
+<h2 id="tiers">10 &nbsp;Model Tiers</h2>
+
+<p>The generated fleet no longer puts every agent on one model. Three roles,
+three choices, made together:</p>
+
+<table>
+<tr><th>Role</th><th>Model</th><th>Why</th></tr>
+<tr><td>Reviewer</td><td>top tier</td><td>One pass over a finished diff. Cheap, and the only thing between a plausible-looking change and your main branch.</td></tr>
+<tr><td>Orchestrator</td><td>top tier</td><td>Pays for itself <em>if</em> it dispatches. If it types the code itself it is the most expensive possible arrangement.</td></tr>
+<tr><td>Workers</td><td>mid tier</td><td>They receive a brief containing everything they need, so capability buys less here than anywhere else.</td></tr>
+</table>
+
+<p><b>A model class implies an agent-file shape.</b> Keep two variants of the
+orchestrator: the full procedural file for the smaller model, and a lean one
+for the capable model. Measured on one identical task across eight
+configurations, the lean file halved the cost of the capable model and
+passed, while making every smaller model more expensive and no better.</p>
+
+<p>Running a capable model against the full file is the most common setup
+error. It reads as the safe choice and is not: the model spends context on
+scaffolding it does not need, has less left for the work, and starts doing
+the work itself rather than dispatching.</p>
+
+<p>Edit <code>MODEL_TIERS</code> near the top of the wizard's script block to
+change the defaults.</p>
+
 <h2>Quick Reference</h2>
 
 <div class="grid-2">
@@ -526,6 +592,13 @@ claude --agent &lt;worker&gt; \
 
 <table>
   <tr><th>Command</th><th>Mode</th><th>What it does</th><th>Trigger phrases</th><th>Writes?</th></tr>
+<tr><td><code>model-tiers</code></td><td>Choosing models per role. The reviewer, the orchestrator and the workers it dispatches are three separate choices, and a model class implies an agent-file shape.</td><td>Setting up a fleet. An orchestrator is writing code instead of dispatching. Costs higher than expected.</td></tr>
+<tr><td><code>dispatch-doctrine</code></td><td>An orchestrator dispatches, monitors and steers. Writing the code itself is the failure of that job. Also: a brief carries content, not process.</td><td>About to write code as the orchestrator. Writing a brief. A dispatched unit came back wrong.</td></tr>
+<tr><td><code>gate-procedures</code></td><td>How a reviewer decides whether a gate proves anything. A test that passes before the fix is not a gate.</td><td>Reviewing a diff. Writing an approval or rejection. Judging whether a green suite is evidence.</td></tr>
+<tr><td><code>diagnosing-bugs</code></td><td>Build a feedback loop that fails on the bug before forming any theory, then rank falsifiable hypotheses. Adapted from mattpocock/skills (MIT).</td><td>A bug is reported. Behaviour differs between environments. About to guess at a cause.</td></tr>
+<tr><td><code>merge-conflicts</code></td><td>Resolve by intent traced to each side's primary source. Never abort.</td><td>A merge or rebase stopped with conflicts. Both branches restructured the same file.</td></tr>
+<tr><td><code>handoff</code></td><td>Write your own handoff before a compact or a fresh session, for a colleague picking the work up cold. Context, not commands.</td><td>About to compact. Starting clean. Handing to another agent or model.</td></tr>
+<tr><td><code>plan-capture</code></td><td>File an approved plan the moment it is approved. A plan lives in the session and nowhere else.</td><td>A plan was just approved. About to commit work that came from a plan.</td></tr>
   <tr><td><code>/scope</code></td><td>Mandatory</td><td>Investigation and planning. Reads files, runs read-only shell, accumulates findings in the Workspace artifact.</td><td>scope mode, investigate, plan, what should we build, figure out what needs to change</td><td>No (read-only)</td></tr>
   <tr><td><code>/draft</code></td><td>Mandatory</td><td>Specification refinement. Markdown artifact for the mission file, HTML/SVG for mockups. Stores the final draft in Workspace.</td><td>draft mode, refine the spec, write the mission, polish it</td><td>No (artifacts only)</td></tr>
   <tr><td><code>/submit</code></td><td>Mandatory</td><td>Format the draft as a copy-paste mission and give the human the launch command (<code>claude --agent &lt;worker&gt; --model opus --dangerously-skip-permissions</code>).</td><td>submit it, send it, queue it, dispatch it, launch it</td><td>No (you copy/paste)</td></tr>
