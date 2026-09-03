@@ -3,7 +3,7 @@ name: snoopy
 description: >-
   Pre-flight scanner. Read-only. Spawned BEFORE the worker implements to verify the mission can proceed cleanly. Produces GREEN/YELLOW/RED verdict. MUST BE USED before any code mission begins. Use PROACTIVELY when detecting parallel-stream churn or scope crossing into shared primitives.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 skills:
   - blast-radius
   - mission-template

@@ -11,7 +11,7 @@ updated: 2026-05-07
 
 # Pre-Commit Verification
 
-Before EVERY `git commit`. No exceptions. Run through this checklist
+Before the commit that ends a unit of work. Normally once per task; see Commit cadence below. Run through this checklist
 mechanically. If any item fails, fix it before committing.
 
 ## 1. Am I in the right place?
@@ -96,3 +96,20 @@ Verify the commit landed with right author and message.
 
 Do NOT commit with a known failure. The checklist exists because
 "fix later" means "never."
+
+## Commit cadence
+
+Complete the work. Run the touched tests once. Commit. Hand off.
+
+**The commit is free; the test run bolted to it is not.** A task that
+commits after every unit re-proves code it already proved, once per
+commit. Agents do not roll back to a mid-run commit, they edit forward,
+and the branch survives a crash whether or not the work was committed.
+
+Commit whenever you have just tested green. That is normally once. A
+second commit after review findings is fine, because the review required a
+test run anyway.
+
+The evidence that a test actually gates the change, failing before the fix
+and passing after, belongs in the completion report. It does not need to
+be a commit sequence.

@@ -170,6 +170,32 @@
         </div>
       </div>
     </div>
+      <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+      <h3 class="font-bold text-stone-700 mb-1 text-sm">Target</h3>
+      <p class="text-xs text-stone-400 mb-4">Which assistant reads this fleet. The doctrine is the same; only the packaging differs.</p>
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="claude" checked oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Claude Code &mdash; <span class="text-stone-400">.claude/ with agents, skills, commands, hooks</span></span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="codex" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Codex &mdash; <span class="text-stone-400">AGENTS.md at the repo root</span></span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="both" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Both &mdash; <span class="text-stone-400">one source, both entry points</span></span>
+        </label>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+      <h3 class="font-bold text-stone-700 mb-1 text-sm">Memory</h3>
+      <p class="text-xs text-stone-400 mb-4">Persistent memory across sessions.</p>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="useMoot" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+        <span class="text-sm text-stone-700">MOOTx01 estate &mdash; <span class="text-stone-400">adds the compact ritual, checkpoint chain, and a plan drawer per project</span></span>
+      </label>
+    </div>
     <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
       <h3 class="font-bold text-stone-700 mb-1 text-sm">Optional Skills</h3>
       <p class="text-xs text-stone-400 mb-4">Extra capabilities. Toggle on if useful.</p>
@@ -273,6 +299,183 @@ const PREREQS = [
   'I have 5–10 minutes to walk through the wizard'
 ];
 
+// Model tiers. Three roles, three choices, made together — see the
+// model-tiers skill for why this is a pairing rather than a dial.
+//
+// The reviewer is the most capable model in every configuration: it is one
+// pass over a finished diff, so it is cheap, and it is the only thing
+// between a plausible-looking change and the main branch.
+//
+// Workers sit at the mid tier. They receive a brief that contains
+// everything they need, so capability buys less here than anywhere else.
+//
+// The orchestrator is the interesting choice. A capable model here pays
+// for itself IF it dispatches; if it types the code itself it is the most
+// expensive possible arrangement. Pair a capable orchestrator with the
+// lean agent-file variant.
+const MODEL_TIERS = {
+  reviewer:     'opus',     // R — judges the orchestrator's work
+  orchestrator: 'opus',     // O — decomposes, dispatches, steers
+  worker:       'sonnet',   // W — the dispatched implementation units
+  preflight:    'sonnet',
+  scanner:      'sonnet',
+  default:      'sonnet'
+};
+
+function modelFor(roleKey) {
+  return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
+}
+
+// ---- Target and memory -------------------------------------------------
+// Every skill the generated fleet will contain: the union of what each
+// enabled role declares, plus any optional skill toggled on. Used by the
+// Codex entry point, which lists them rather than shipping a directory.
+function allSkillKeys() {
+  const set = new Set();
+  ROLES.filter(r => state.agents[r.key].enabled)
+       .forEach(r => (r.skills || []).forEach(k => set.add(k)));
+  OPTIONAL_SKILLS.forEach(o => { if (state.prefs && state.prefs.skills && state.prefs.skills[o.key]) set.add(o.key); });
+  return Array.from(set).sort();
+}
+function targetChoice() {
+  const el = document.querySelector('input[name="target"]:checked');
+  return el ? el.value : 'claude';
+}
+function useMoot() {
+  const el = document.getElementById('useMoot');
+  return !!(el && el.checked);
+}
+
+// AGENTS.md for Codex. Same doctrine, different entry point.
+//
+// Codex reads one file at the repository root rather than a directory of
+// agent definitions, so the roles are inlined here and the skills stay
+// where they are and are referenced by path. When both targets are
+// selected this file says which copy is authoritative, because two
+// descriptions of the same fleet drift the moment one is edited.
+function buildAgentsMd(roles, skills, project, both) {
+  let s = `# AGENTS.md\n\n`;
+  s += `Agent fleet for ${project}.\n\n`;
+  if (both) {
+    s += `> Both Claude Code and Codex read this fleet. The skill files under\n`;
+    s += `> \`.claude/skills/\` are authoritative for behaviour; this file is the\n`;
+    s += `> Codex entry point and restates the roles only. Edit the skills.\n\n`;
+  }
+  s += `## How this fleet works\n\n`;
+  s += `Three roles, and the split between them is the point:\n\n`;
+  s += `- an **orchestrator** decomposes work and dispatches it\n`;
+  s += `- **workers** implement one unit each, from a brief\n`;
+  s += `- a **reviewer** judges the orchestrator's output\n\n`;
+  s += `The orchestrator writing the code itself is the failure of that job,\n`;
+  s += `not a shortcut to it. See \`.claude/skills/dispatch-doctrine/SKILL.md\`.\n\n`;
+  s += `## Models\n\n`;
+  s += `| Role | Model |\n| --- | --- |\n`;
+  roles.forEach(r => { s += `| ${r.title} | ${modelFor(r.key)} |\n`; });
+  s += `\nA model class implies an agent-file shape: capable models take the\n`;
+  s += `lean variant, smaller models take the full procedural one. Running a\n`;
+  s += `capable model against the full file is the most common setup error.\n`;
+  s += `See \`.claude/skills/model-tiers/SKILL.md\`.\n\n`;
+  s += `## Roles\n\n`;
+  roles.forEach(r => {
+    s += `### ${r.title}\n\n${sub(r.role)}\n\n`;
+    s += `**Does:**\n`;   (r.does || []).forEach(d => { s += `- ${sub(d)}\n`; });
+    s += `\n**Does not:**\n`; (r.notDoes || []).forEach(d => { s += `- ${sub(d)}\n`; });
+    if (r.skills && r.skills.length) {
+      s += `\n**Skills:** ` + r.skills.map(k => `\`${k}\``).join(', ') + `\n`;
+    }
+    s += `\n`;
+  });
+  s += `## Skills\n\n`;
+  s += `Full text under \`.claude/skills/<name>/SKILL.md\`. Read the one that\n`;
+  s += `matches what you are doing rather than all of them.\n\n`;
+  skills.forEach(k => { s += `- \`${k}\`\n`; });
+  return s;
+}
+
+// The MOOTx01 overlay. Commands only — the handoff and plan-capture skills
+// are in the base bundle written against "your memory system", and are
+// simply better with an estate behind them.
+function mootCommands() {
+  return {
+    'prepare-for-compact.md': `Write the handoff and file it to the estate. Do this now, in this turn.
+
+You are writing for a colleague picking this work up cold. They can read
+the estate and the code. They cannot read this conversation.
+
+Give them context, not commands. No "you must", no "always", no checklist
+to obey. They get their own judgment once oriented.
+
+Cover: what you are building and why; where things stand, naming the
+in-progress thing precisely; decisions and the thinking behind them,
+especially the arbitrary-looking ones; what failed and how; exact strings
+quoted verbatim; what is still open; where you would pick up and why.
+
+Open the body with these four lines so a later session can tell your
+handoff from another agent's:
+
+    repo:    <repository name>
+    agent:   <your agent name>
+    branch:  <the branch, or none>
+    written: <ISO timestamp>
+
+If you are holding an approved plan, file the plan itself to
+plans/<project>/<plan-slug> and link the handoff to it derivesFrom. File
+the plan text, not a reference: working directories are usually
+gitignored, so a plan file there does not travel.
+
+File the handoff to session/<session_id>/handoff. If the estate is
+unreachable, print the whole thing in chat and say plainly that it did not
+file.
+
+Confirm in one line where it went, then say: Ready. Run /compact now.
+`,
+    'recover-from-compact.md': `Read your handoff and re-orient before doing any work.
+
+After a compact your session id is unchanged, so the direct lookup works.
+After a FRESH session it is a new id and you cannot know the old one. And
+more than one agent may work from this directory, so a bare search returns
+handoffs that are not yours.
+
+Resuming a compact:
+
+    moot_memory_get on session/<session_id>/handoff
+
+Otherwise search and expect several results:
+
+    moot_memory_search("handoff <repo-name>")
+
+For each candidate establish which repo it names, which agent wrote it,
+and how recent it is. Discard on repo, then agent, then take the most
+recent. If exactly one survives, say which and why.
+
+IF MORE THAN ONE SURVIVES, STOP AND ASK. List agent, timestamp, branch and
+first line of each. A wrong handoff does not announce itself: it reads as
+perfectly coherent context for work nobody was doing.
+
+Then check the repo against what the handoff claims. A handoff saying a
+branch was pushed against a repo saying otherwise means the push failed
+after the note was written. Trust the repo.
+
+Report orientation and wait. Do not start work in this turn.
+`,
+    'start-clean.md': `Write a COLD START handoff and file it to the estate.
+
+This session is ending and the next begins clean, possibly on a different
+model, possibly days later. Nothing carries over.
+
+So lead with orientation: what you are building and why comes first, in
+two paragraphs. What you happened to be doing when it stopped goes last.
+
+Everything else is as /prepare-for-compact: the four identity lines, the
+plan filed in full if you hold one, context rather than commands, exact
+strings quoted.
+
+File to session/<session_id>/handoff. Then say: Cold start handoff filed.
+In the new session, run /recover-from-compact.
+`
+  };
+}
+
 const ROLES = [
   { key: 'orchestrator', name: 'Hobbes', title: 'Orchestrator', required: true,
     persona: "Strategic and thoughtful. Investigates before proposing. Asks sharp questions to narrow scope. Writes mission files that are clear enough for any code worker to follow without ambiguity. Never writes code. Recommends architectural approaches but defers final decisions to the human. Keeps conversations focused and resists tangents.",
@@ -283,11 +486,11 @@ const ROLES = [
     descLine: "Strategic planner and mission author. Investigates the codebase, asks sharp questions, writes mission files for code workers. Spawns the architect for non-trivial design choices. Recommends architecture; the human decides. Use PROACTIVELY when scoping new work, breaking changes into parts, or reviewing completed missions." },
   { key: 'worker', name: 'Woodstock', title: 'Code Worker', required: true,
     persona: "Thorough and methodical. Follows mission files step by step, never improvises. Spawns the pre-flight scanner before coding and the reviewer after the final commit — automatically, every mission. Commits after each implementation part with descriptive messages. Runs tests before declaring done. If a mission instruction is ambiguous, stops and asks rather than guessing. Takes pride in clean, readable code.",
-    role: "The code worker for {{project}}. Reads a mission file, runs the standard subagent flow (pre-flight → implement → self-review → reviewer → specialists as needed), and implements one Part at a time.",
-    does: ["Read the mission and follow it step by step","Spawn the pre-flight scanner before coding","Implement one Part at a time","Run tests after each step","Commit with descriptive messages per Part","Spawn the reviewer after the final commit","Spawn specialist reviewers when their triggers fire"],
-    notDoes: ["Deviate from the mission","Make architecture decisions","Skip tests","Modify files not listed in the mission","Skip the pre-flight scan","Skip the reviewer"],
+    role: "The code worker for {{project}}. Reads a mission file, runs the standard subagent flow (pre-flight → implement → self-review → reviewer → specialists as needed), and implements one Part at a time. Both gates are mandatory: pre-flight before any edit, post-flight before the signal.",
+    does: ["Read the mission and follow it step by step","Spawn the pre-flight scanner before coding — MANDATORY, and blocking: a red verdict stops the mission, it does not become a note in the report","Implement the mission","Run tests after each step","Commit with descriptive messages per Part","Spawn the reviewer after the final commit","Spawn specialist reviewers when their triggers fire"],
+    notDoes: ["Deviate from the mission","Make architecture decisions","Skip tests","Skip the pre-flight or post-flight gate because the change looks small — that judgment belongs to the reviewer","Modify files not listed in the mission","Skip the pre-flight scan","Skip the reviewer"],
     skills: ["subagent-orchestration","pre-commit","self-review","git-workflow","blast-radius","mission-template","tdd","agent-commits","safety-rules","communication"],
-    descLine: "Code worker. Implements missions step by step, commits per Part, runs tests, never improvises. Pulls in subagents at standard checkpoints (pre-flight before coding, reviewer after final commit, specialists on trigger). MUST BE USED for any code change. Use PROACTIVELY when a mission file exists and is ready to execute." },
+    descLine: "Code worker. Implements missions step by step, runs the tests once, commits when green, never improvises. Pulls in subagents at standard checkpoints (pre-flight before coding, reviewer after final commit, specialists on trigger). MUST BE USED for any code change. Use PROACTIVELY when a mission file exists and is ready to execute." },
   { key: 'reviewer', name: 'Garfield', title: 'Reviewer', required: false,
     persona: "Meticulous and unsparing. Reviews every diff line by line against the mission spec. Produces a numbered punch list sorted by severity. Never modifies files. Dry humor in comments. Flags what others overlook: missing edge cases, untested paths, naming inconsistencies.",
     role: "Post-implementation reviewer for {{project}}. Compares the diff against the mission spec, produces a punch list, never touches files.",
@@ -347,6 +550,13 @@ const OPTIONAL_SKILLS = [
   { key:'documentation-rev',label:'Doc revision discipline',    desc:'Update docs in the same commit as code.' },
   { key:'source-of-truth',  label:'Source of truth tracking',   desc:'Designate canonical documents.' },
   { key:'branch-hygiene',   label:'Branch hygiene',             desc:'One task per branch. Clean up after merge.' },
+  { key:'gate-procedures', label:'Gate procedures (review)',   desc:'A test that passes before the fix is not a gate.' },
+  { key:'diagnosing-bugs', label:'Diagnosing bugs',           desc:'Build a failing loop before forming a theory.' },
+  { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
+  { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
+  { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
+  { key:'model-tiers',     label:'Model tiers (R/O/W)',       desc:'Per-role models. Why a model class implies a file shape.' },
+  { key:'dispatch-doctrine',label:'Dispatch doctrine',        desc:'The orchestrator dispatches. Typing is the failure.' },
   { key:'nexusmcp',         label:'NexusMCP persistent memory', desc:'Cross-session memory via knowledge graph.' }
 ];
 
@@ -1277,6 +1487,27 @@ These preferences apply to every response from every agent on
 - One short paragraph status reports, not transcripts
 - Specific over general: file:line refs over "in the file"
 - Cite, don't paraphrase, when summarizing existing docs
+
+# Commit cadence
+
+Complete the work. Run the touched tests once. Commit. Hand off.
+
+**The commit is free; the test run bolted to it is not.** A task that
+commits after every unit re-proves code it already proved, once per
+commit. That is the single largest repeat spend in most workflows and it
+buys nothing: agents do not roll back to a mid-run commit, they edit
+forward, and the branch survives a crash whether or not the work was
+committed.
+
+Commit whenever you have just tested green. That is normally once. A
+second commit after review findings are fixed is fine, because the review
+required a test run anyway. Eight commits means eight test runs.
+
+The evidence that a test actually gates the change - failing before the
+fix, passing after - belongs in the completion report, which records both
+results explicitly. It does not need to be a commit sequence.
+
+
 `
   },
 
@@ -1726,6 +1957,441 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'model-tiers': {
+    desc: "Choosing models per role, and why a model class implies an agent-file shape. The orchestrator, the workers it dispatches, and the reviewer are three separate choices.",
+    use: "Setting up a fleet. Deciding which model runs which agent. An orchestrator is writing code itself instead of dispatching. Costs are higher than expected. A capable model is behaving like a cheap one.",
+    body: `# Model tiers
+
+Three roles, three choices, made together:
+
+    R  reviewer      judges the orchestrator's work and orders fixes
+    O  orchestrator  decomposes, dispatches, reviews returned diffs
+    W  worker        the dispatched implementation units
+
+Choosing one and leaving the others to default is the common failure. A
+capable orchestrator dispatching to itself costs several times what the
+same work costs dispatched to a cheaper worker.
+
+## A model class implies an agent-file shape
+
+Newer, more capable models need fewer guardrails. Older or smaller models
+need the full procedural file.
+
+Keep two variants of your orchestrator agent:
+
+    orchestrator.md     full doctrine, for the smaller model
+    orchestrator-5.md   lean, for the capable model
+
+The lean file assumes capability: no step-by-step scaffolding, no repeated
+reminders, no procedure the model would have followed anyway. State the
+mandate, the boundaries, and the failure modes, and stop.
+
+Measured on one identical task across eight configurations: the lean file
+HALVED the cost of the capable model and passed, while it made every
+smaller model MORE expensive and no better. Doctrine size is not a
+quality dial you turn up. It is a pairing.
+
+**Running a capable model against the full file is the most common setup
+error.** It reads as the safe choice and it is not: the model spends its
+context on scaffolding it does not need, then has less left for the work,
+and starts doing the work itself rather than dispatching.
+
+## Sensible defaults
+
+| Mode | O | agent file | W |
+| --- | --- | --- | --- |
+| default | capable | lean | mid |
+| security or high-stakes | most capable | lean | mid |
+| budget | mid | full | mid |
+
+The reviewer is the most capable model you have, in every mode. It is one
+pass over a finished diff, so it is cheap, and it is the only thing
+standing between a plausible-looking change and your main branch.
+
+## Pin the worker model on every dispatch
+
+A dispatched call with no model specified runs on the CALLER's model. If
+your orchestrator is the expensive one, every unit it dispatches is
+expensive too, and the saving you designed disappears silently.
+
+Declare it once and apply it to every call:
+
+    const M = { model: '<worker-model>', effort: 'medium' }
+    await agent(BRIEF, { ...M, agentType: 'worker', label: 'parser' })
+
+## Watch the delegation number
+
+The share of tokens spent in dispatched units rather than in the
+orchestrator's own context predicts cost better than any other single
+number.
+
+Measured across live runs: orchestrators that dispatched their
+implementation units ran about 64% of tokens in subagents. Orchestrators
+that typed the code themselves ran 0 to 32%, and cost three to four times
+as much for comparable work.
+
+If that number is low, the orchestrator is being a typist. That is a
+doctrine problem, not a model problem, and no amount of model upgrade
+fixes it.
+`
+  },
+
+  'dispatch-doctrine': {
+    desc: "An orchestrator dispatches, monitors, corrects and steers. Writing the code itself is the failure of that job, not a shortcut to it.",
+    use: "An orchestrator is about to write code. Deciding whether work should be dispatched or done inline. Writing a brief for a dispatched unit. A dispatched unit came back wrong.",
+    body: `# Dispatch doctrine
+
+Judgment is yours. Typing is not.
+
+**When two or more units have disjoint file sets, dispatching is
+mandatory.** Not preferred. A task with eight files across five parts is a
+fan-out, and writing it yourself is a doctrine violation regardless of how
+well it turns out.
+
+The reviewer judges YOU, not the workers. A unit that comes back wrong is
+your brief being wrong.
+
+You may write code yourself in one case: a worker has botched the same
+unit badly or repeatedly, and a corrected brief has already failed. Not
+because it is faster, not because the change is small, not because you can
+see the fix. Log every instance with the reason a re-dispatch did not
+work.
+
+## A brief carries content, not process
+
+A brief is: the working directory and base commit; the ruling and why;
+verified facts with file:line anchors; what to build; what is out of
+scope; what to return.
+
+It is NOT the dispatch doctrine, the commit rules, the test discipline, or
+the safety rules. The agent file already carries those. Restating them
+spends the unit's context before it starts and teaches it nothing.
+
+This is expensive when you get it wrong. In one incident four workers each
+carried a full lifecycle their agent file already specified, and two burned
+their entire budget without writing a line of code.
+
+## Brief content decides the output
+
+Measured across eight parallel implementations of one identical task: the
+one whose brief named a specific protocol three times conformed to it; the
+one whose brief named a different protocol twenty times conformed to THAT
+one instead and lost the ability to assert on structure.
+
+Name the conformances, the boundary cases, and the exact wrong answers you
+are guarding against. A dispatched unit starts with none of your context.
+The brief is the whole world it gets.
+
+## Verify a fact before you anchor it
+
+A file:line reference that has moved sends the unit somewhere wrong with
+total confidence. Check it against the file, not against your memory of
+the file.
+
+## Review every returned diff
+
+A green suite is not evidence. Three crash bugs shipped from units whose
+own tests passed, all found by reading the diff rather than running it.
+
+Re-dispatch a wrong unit once with a corrected brief before fixing it
+yourself. The brief was probably the problem.
+`
+  },
+
+  'gate-procedures': {
+    desc: "How a reviewer decides whether a gate proves anything - falsification against the pre-fix commit, running the artifact rather than reading it, and what a rejection has to carry.",
+    use: "Reviewing a returned diff. Deciding whether a test gates the change it claims to. Writing an approval or rejection. A change claims to be already fixed. Judging whether a green suite is evidence.",
+    body: `# Gate procedures
+
+## A green suite is not evidence
+
+Measured across eight parallel implementations of one identical task:
+every code review passed, and two of the resulting binaries crashed on
+ordinary input. A script that built and ran each artifact found six of the
+eight failures in seconds.
+
+Run it, then read the diff, then consider the suite. The suite is the
+weakest of the three and the one most often quoted.
+
+## The gate must fail before the fix
+
+A test that passes against the pre-fix code proves nothing. It is not a
+weak gate; it is not a gate.
+
+For every test a change claims as proof:
+
+1. Check out the commit before the fix
+2. Run the test
+3. It must fail
+
+A report without both results has not shown you the gate works. Ask for
+them. "Tests pass" is a statement about the present tense only.
+
+Watch the near miss: a test that fails pre-fix for the wrong reason, a
+compile error rather than the assertion. Also not a gate.
+
+## Read what the test asserts, not what it is named
+
+A test named testDeletionRemovesRow that asserts "no row with the flag
+set" passes when the flag is cleared and the row survives, still holding
+the data that was supposed to be deleted. The name says deletion; the
+assertion says flag.
+
+Where the property is a side effect, the assertion has to reach the side
+effect. Asserting on a return value is not asserting on what persisted.
+
+## Inherited verdicts are claims, not facts
+
+A change that says "already fixed by X" is offering a conclusion someone
+else reached. Test it. In one case the earlier fix covered only the
+wholesale path while the per-item path never reached it. Taking the claim
+would have closed a live defect twice.
+
+## What a rejection has to carry
+
+A finding without the means to act on it is a complaint.
+
+- The anchor: file and line
+- The observed behaviour, not the suspected one: an exit code, an output,
+  a row that survived
+- What correct looks like
+- The test that would prove it, and that it fails pre-fix
+
+Rank by what reaches a user first, not by what is easiest to explain.
+
+## Send findings as you establish them
+
+Batched findings arrive after the author has moved on. In one review,
+rounds seven and eight landed after the commit and were never acted on.
+
+If you are on round eight arguing about wording, stop and escalate with
+both positions stated plainly. A reviewer that cannot close is as
+expensive as an author that cannot.
+`
+  },
+
+  'handoff': {
+    desc: "Write your own handoff before a compact or a fresh session, for a colleague picking the work up cold. Context, not commands.",
+    use: "About to compact. Context filling with work unfinished. Starting clean. Handing to another agent or model. Ending a session with more to do.",
+    body: `# Writing your own handoff
+
+A summarizer does not know which detail carried the weight. You do.
+
+Write it for a colleague picking this up cold. They can read the code and
+whatever memory store you have. They cannot read this conversation, and
+everything that lived only here is about to be gone.
+
+## Two variants
+
+RESUME - the same work continues after a compact. The next context
+inherits the thread and needs state and open threads.
+
+COLD START - the context is spent and the next session begins clean,
+possibly on a different model, possibly days later. Lead with what you are
+building and why; what you were doing when it stopped goes last.
+
+Say which you are writing at the top.
+
+## Give context, not commands
+
+The instinct is a checklist. Resist it. A checklist says what to do
+without saying why, so the first situation that does not match leaves the
+reader with nothing.
+
+Write what you learned the hard way. What you tried. What broke and how.
+Why you went one direction rather than another, especially where the
+choice would look arbitrary from outside.
+
+Skip anything they would get from reading the code.
+
+## What tends to carry weight
+
+- What you are building and why. Two paragraphs in a cold start, a line in
+  a resume
+- Where things stand: done, in progress, untouched. Name the in-progress
+  thing precisely - a branch, a ticket, a half-edited file
+- Decisions and the thinking behind them, especially the arbitrary-looking
+  ones. "We used the archive path because an archived record read as
+  missing and cascade-deleted four dependents" survives; "use the archive
+  path" does not
+- What failed and how. The failure mode matters more than the fix
+- Exact strings: errors, config keys, response shapes, commit hashes,
+  file:line anchors. Quote them verbatim. A paraphrased error is neither
+  searchable nor recognisable
+- What is still open, including what nobody decided
+- Where you would pick up, and why you think so
+
+## Identify it so it can be found
+
+More than one agent may work from the same directory on different things,
+and a later session searching for its handoff will see all of them.
+
+Open the body with:
+
+    repo:    <repository name>
+    agent:   <your agent name>
+    branch:  <the branch, or none>
+    written: <ISO timestamp>
+
+A reader discards on repo, then agent, then takes the most recent. Without
+those three they cannot tell your handoff from another agent's, and a
+wrong handoff reads as perfectly coherent context for work nobody was
+doing.
+
+## Where it goes
+
+Into your memory store if you have one, at a stable key. Into the
+conversation if you do not, so it can be pasted somewhere durable.
+
+Check the write landed. A handoff believed filed and not filed is worse
+than one you knew to copy by hand.
+
+## Tone
+
+A colleague catching someone up, not a manual. No "you must", no "always",
+no "never". They will use their own judgment once oriented, and that is
+the point.
+`
+  },
+
+  'plan-capture': {
+    desc: "File an approved plan the moment it is approved. A plan lives in the session and nowhere else.",
+    use: "A plan was just approved, or a decomposition agreed. About to commit work that came from a plan. Asked what was planned for this project. Resuming and looking for a previous session's plan.",
+    body: `# Capturing the plan
+
+## What counts as a plan
+
+A plan is the multi-step thing agreed with the operator: several units of
+work, their dependency order, and the reasoning that produced the split.
+
+It is not a task and it is not a brief.
+
+| Artifact | Held by | Already recorded |
+| --- | --- | --- |
+| Plan | the interactive orchestrator | nowhere, this is the gap |
+| Task | the tracker | ticket, issue, task file |
+| Brief | a dispatched worker | ephemeral, deliberately |
+
+A dispatched worker does not know the plan. Its brief carries what to
+build and nothing about the units either side of it, which is the point of
+the brief rule. If you are holding a brief rather than a plan, this does
+not apply to you.
+
+## At approval
+
+File it the moment it is agreed, to a stable key:
+
+    plans/<project>/<plan-slug>
+
+The plan text verbatim, not a summary. A summary is what the next session
+would have written for itself; the plan is what it cannot reconstruct.
+Include every step, the dependency order, and the reasoning behind the
+ordering.
+
+Re-approving a plan updates that record rather than filing a second one.
+
+## Before a commit
+
+Before committing work that came from a plan, check the plan is filed. If
+it is not, file it now, while you still have it. Then commit. Do not hold
+the commit for it.
+
+## Keep it current
+
+Record which parts are done, in flight, and untouched, and anything the
+operator ruled on mid-plan that changed it. A plan record that says
+everything is untouched, three steps in, is worse than none.
+
+## Why the whole plan and not a path
+
+Working directories are often gitignored. A plan file there does not
+travel to another machine, a fresh clone, or a teammate. A handoff that
+says "see the plan file" is a dead reference to anyone who does not
+already have your disk.
+
+## Reading one back
+
+A drawer of plans per project gives you the plan history on its own terms:
+what was planned, in order, including plans approved and never finished.
+That last set is hard to recover any other way.
+`
+  },
+
+  'diagnosing-bugs': {
+    desc: "Build a feedback loop that fails on the bug before forming any theory. Adapted from mattpocock/skills (MIT).",
+    use: "A bug is reported. A test fails intermittently. Behaviour differs between environments. You are about to guess at a cause.",
+    body: `# Diagnosing bugs
+
+## Build the failing loop first
+
+Before reading code to build a theory, get a command that fails on this
+bug, reliably, in under a few seconds.
+
+If you catch yourself reading code to form a hypothesis before that
+command exists, stop. Jumping to a hypothesis is the exact failure this
+prevents.
+
+A real example: a rebase was reported as "FAILED with conflicts" and an
+operator spent an hour hunting merge conflicts that did not exist. The
+cause was a missing binary on PATH. Nobody had run the rebase and looked.
+
+## Then rank hypotheses, and make them falsifiable
+
+Write three to five candidate causes before testing any of them. For each,
+state what you would observe if it were true and what you would observe if
+it were not.
+
+Anchoring on the first plausible cause is the most common way a diagnosis
+goes wrong, and it is invisible from inside: the first theory always feels
+sufficient.
+
+## Tighten the loop as you go
+
+A loop is a product, not a prerequisite. Faster, sharper, more
+deterministic. Every second you remove you pay back on every iteration.
+
+## Report what you observed
+
+"This looks wrong" is a guess wearing a fact's clothes. "Input X produced
+exit 133" is a fact. Report the file, the exit code, the last line of
+stderr.
+
+Distinguish a content problem from an environment problem from a
+bookkeeping problem. Most stubborn bugs are the last two.
+`
+  },
+
+  'merge-conflicts': {
+    desc: "Resolve by intent traced to each side's primary source. Never abort. Adapted from mattpocock/skills (MIT).",
+    use: "A merge or rebase stopped with conflicts. Deciding which side to keep. A conflict in a file both branches restructured.",
+    body: `# Resolving merge conflicts
+
+Find the primary source for each side: the commit, the ticket, the review
+that produced it. Understand why each change was made before choosing
+between them.
+
+Preserve both intents where they are compatible. Where they are not, pick
+the one matching the merge's stated goal and note the trade-off in the
+merge message.
+
+Do not invent new behaviour to bridge two sides. A resolution that is
+neither branch's intent is a change nobody reviewed.
+
+Always resolve. Never abort: an abort discards the information you just
+gathered and the next attempt starts from nothing.
+
+## The failure worth naming
+
+Resolving by heuristic - keep both, take theirs, take ours - without
+reading either side's intent produces something that compiles and is
+wrong. It is also invisible in review, because the diff against each
+parent looks reasonable.
+
+If two branches both restructured the same file, diff each against the
+merge base before deciding anything.
+`
+  },
+
   'blast-radius': {
     desc: "Pre-flight protocol for missions that modify, remove, rename, or alter the semantics of existing symbols on {{project}}. Documents call-site impact and required updates BEFORE code changes are made.",
     use: "Mission renames or removes a symbol. Mission changes a function signature. Mission deprecates a method. Mission alters schema fields, enum cases, or shared constants. Trigger phrases: blast radius, MUST_UPDATE, INTENTIONALLY_LEFT, RESCOPE_REQUIRED, rename, signature change, symbol removal, deprecation, migration, orphan deprecation, bridge helper, partial migration, call sites.",
@@ -3672,7 +4338,7 @@ with [MODE: {{SUBMIT}}].
 
 \\\`\\\`\\\`
 cd {{repo}}
-claude --agent {{worker_lc}} --model opus --dangerously-skip-permissions
+claude --agent {{worker_lc}} --model sonnet --dangerously-skip-permissions
 \\\`\\\`\\\`
 
 Then paste the mission content from the artifact.
@@ -3711,7 +4377,7 @@ cd {{repo}}
 3. Launch the worker:
 
 \\\`\\\`\\\`
-claude --agent {{worker_lc}} --model opus --dangerously-skip-permissions
+claude --agent {{worker_lc}} --model sonnet --dangerously-skip-permissions
 \\\`\\\`\\\`
 
 4. Paste the mission content from the artifact and hit return.
@@ -4245,7 +4911,7 @@ function genAgent(role) {
   const desc = sub(role.descLine);
   s += '  ' + desc.split('\n').join('\n  ') + '\n';
   s += 'tools: Read, Glob, Grep, Bash\n';
-  s += 'model: opus\n';
+  s += `model: ${modelFor(role.key)}\n`;
   if (skills.length) {
     s += 'skills:\n';
     skills.forEach(k => { s += `  - ${k}\n`; });
@@ -5608,7 +6274,7 @@ edit. To see what end users see, also open \`GUIDE.html\`.
 Run the tutorial ladder in order to learn the file structure:
 
 \`\`\`
-claude --agent ${kebab(w)} --model opus --dangerously-skip-permissions
+claude --agent ${kebab(w)} --model ${modelFor('worker')} --dangerously-skip-permissions
 # paste cli/missions/MISSION_TUTORIAL_1_RENAME_WORKER.md
 \`\`\`
 
@@ -5668,7 +6334,7 @@ The chat skills are:
 
 \`\`\`
 cd /path/to/your/repo
-claude --agent ${kebab(w)} --model opus --dangerously-skip-permissions
+claude --agent ${kebab(w)} --model ${modelFor('worker')} --dangerously-skip-permissions
 # paste a mission file's contents
 \`\`\`
 
@@ -5745,7 +6411,7 @@ echo "Chat skills are zipped in chat/ — drag them into claude.ai → Settings 
 echo ""
 echo "To run a mission:"
 echo "  cd $REPO"
-echo "  claude --agent ${w} --model opus --dangerously-skip-permissions"
+echo "  claude --agent ${w} --model ${modelFor('worker')} --dangerously-skip-permissions"
 echo "  # paste mission content"
 `;
 }
@@ -5786,8 +6452,39 @@ function buildZipEntries() {
     }
   }
 
-  entries.push({ path: `${root}/cli/CLAUDE.md`, content: genCLAUDEmd() });
-  entries.push({ path: `${root}/cli/settings.json`, content: genSettingsJSON() });
+  const tgt = targetChoice();
+
+  // Claude Code entry point. Emitted unless the target is Codex only.
+  if (tgt !== 'codex') {
+    entries.push({ path: `${root}/cli/CLAUDE.md`, content: genCLAUDEmd() });
+    entries.push({ path: `${root}/cli/settings.json`, content: genSettingsJSON() });
+  }
+
+  // Codex entry point. Same doctrine, one file at the repo root, with the
+  // skills left where they are and referenced by path. When both targets
+  // are selected it says which copy is authoritative, because two
+  // descriptions of one fleet drift the moment either is edited.
+  if (tgt === 'codex' || tgt === 'both') {
+    entries.push({
+      path: `${root}/AGENTS.md`,
+      content: buildAgentsMd(
+        ROLES.filter(r => state.agents[r.key].enabled),
+        allSkillKeys(),
+        state.project.name || 'project',
+        tgt === 'both')
+    });
+  }
+
+  // MOOTx01 overlay: the compact ritual as commands. The handoff and
+  // plan-capture SKILLS are in the base bundle already, written against
+  // "your memory system" -- these commands are what make the ritual one
+  // keystroke instead of a paragraph typed by hand.
+  if (useMoot()) {
+    const cmds = mootCommands();
+    Object.keys(cmds).forEach(name => {
+      entries.push({ path: `${root}/cli/commands/${name}`, content: cmds[name] });
+    });
+  }
 
   for (const role of ROLES) {
     if (!state.agents[role.key].enabled) continue;

@@ -3,7 +3,7 @@ name: linus
 description: >-
   Doc writer. Writes user-facing documentation, READMEs, and guides. Tests instructions mentally. Keeps language simple. MUST BE USED for any user-facing behavior change. Use PROACTIVELY when missions ship features and docs lag.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 skills:
   - documentation-rev
   - communication

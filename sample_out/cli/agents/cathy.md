@@ -3,7 +3,7 @@ name: cathy
 description: >-
   Accessibility reviewer. Read-only. Audits UI changes against WCAG — screen-reader support, keyboard navigation, color contrast, touch targets, semantic structure. Use PROACTIVELY for any UI mission and any change that adds interactive elements.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 skills:
   - self-review
 status: active

@@ -3,7 +3,7 @@ name: calvin
 description: >-
   Architecture reviewer. Read-only. Spawned for missions with non-trivial design choices — touching shared primitives, cross-system surfaces, or multi-quarter implications. Surfaces tradeoffs and second-order effects. MUST BE USED when missions depart from established patterns or introduce patterns others will follow.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 skills:
   - mission-scoping
   - blast-radius

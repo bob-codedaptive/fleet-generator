@@ -3,7 +3,7 @@ name: dogbert
 description: >-
   Security reviewer. Read-only. Spawned for missions touching authentication, user data, external API calls, dependency upgrades, URL handlers, or credential storage. Models attack vectors. Findings are advisory or blocking. MUST BE USED on missions that touch sensitive surfaces.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 skills:
   - safety-rules
   - blast-radius
