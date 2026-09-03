@@ -170,6 +170,32 @@
         </div>
       </div>
     </div>
+      <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+      <h3 class="font-bold text-stone-700 mb-1 text-sm">Target</h3>
+      <p class="text-xs text-stone-400 mb-4">Which assistant reads this fleet. The doctrine is the same; only the packaging differs.</p>
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="claude" checked oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Claude Code &mdash; <span class="text-stone-400">.claude/ with agents, skills, commands, hooks</span></span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="codex" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Codex &mdash; <span class="text-stone-400">AGENTS.md at the repo root</span></span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="radio" name="target" value="both" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Both &mdash; <span class="text-stone-400">one source, both entry points</span></span>
+        </label>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+      <h3 class="font-bold text-stone-700 mb-1 text-sm">Memory</h3>
+      <p class="text-xs text-stone-400 mb-4">Persistent memory across sessions.</p>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="useMoot" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+        <span class="text-sm text-stone-700">MOOTx01 estate &mdash; <span class="text-stone-400">adds the compact ritual, checkpoint chain, and a plan drawer per project</span></span>
+      </label>
+    </div>
     <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
       <h3 class="font-bold text-stone-700 mb-1 text-sm">Optional Skills</h3>
       <p class="text-xs text-stone-400 mb-4">Extra capabilities. Toggle on if useful.</p>
@@ -298,6 +324,156 @@ const MODEL_TIERS = {
 
 function modelFor(roleKey) {
   return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
+}
+
+// ---- Target and memory -------------------------------------------------
+// Every skill the generated fleet will contain: the union of what each
+// enabled role declares, plus any optional skill toggled on. Used by the
+// Codex entry point, which lists them rather than shipping a directory.
+function allSkillKeys() {
+  const set = new Set();
+  ROLES.filter(r => state.agents[r.key].enabled)
+       .forEach(r => (r.skills || []).forEach(k => set.add(k)));
+  OPTIONAL_SKILLS.forEach(o => { if (state.prefs && state.prefs.skills && state.prefs.skills[o.key]) set.add(o.key); });
+  return Array.from(set).sort();
+}
+function targetChoice() {
+  const el = document.querySelector('input[name="target"]:checked');
+  return el ? el.value : 'claude';
+}
+function useMoot() {
+  const el = document.getElementById('useMoot');
+  return !!(el && el.checked);
+}
+
+// AGENTS.md for Codex. Same doctrine, different entry point.
+//
+// Codex reads one file at the repository root rather than a directory of
+// agent definitions, so the roles are inlined here and the skills stay
+// where they are and are referenced by path. When both targets are
+// selected this file says which copy is authoritative, because two
+// descriptions of the same fleet drift the moment one is edited.
+function buildAgentsMd(roles, skills, project, both) {
+  let s = `# AGENTS.md\n\n`;
+  s += `Agent fleet for ${project}.\n\n`;
+  if (both) {
+    s += `> Both Claude Code and Codex read this fleet. The skill files under\n`;
+    s += `> \`.claude/skills/\` are authoritative for behaviour; this file is the\n`;
+    s += `> Codex entry point and restates the roles only. Edit the skills.\n\n`;
+  }
+  s += `## How this fleet works\n\n`;
+  s += `Three roles, and the split between them is the point:\n\n`;
+  s += `- an **orchestrator** decomposes work and dispatches it\n`;
+  s += `- **workers** implement one unit each, from a brief\n`;
+  s += `- a **reviewer** judges the orchestrator's output\n\n`;
+  s += `The orchestrator writing the code itself is the failure of that job,\n`;
+  s += `not a shortcut to it. See \`.claude/skills/dispatch-doctrine/SKILL.md\`.\n\n`;
+  s += `## Models\n\n`;
+  s += `| Role | Model |\n| --- | --- |\n`;
+  roles.forEach(r => { s += `| ${r.title} | ${modelFor(r.key)} |\n`; });
+  s += `\nA model class implies an agent-file shape: capable models take the\n`;
+  s += `lean variant, smaller models take the full procedural one. Running a\n`;
+  s += `capable model against the full file is the most common setup error.\n`;
+  s += `See \`.claude/skills/model-tiers/SKILL.md\`.\n\n`;
+  s += `## Roles\n\n`;
+  roles.forEach(r => {
+    s += `### ${r.title}\n\n${sub(r.role)}\n\n`;
+    s += `**Does:**\n`;   (r.does || []).forEach(d => { s += `- ${sub(d)}\n`; });
+    s += `\n**Does not:**\n`; (r.notDoes || []).forEach(d => { s += `- ${sub(d)}\n`; });
+    if (r.skills && r.skills.length) {
+      s += `\n**Skills:** ` + r.skills.map(k => `\`${k}\``).join(', ') + `\n`;
+    }
+    s += `\n`;
+  });
+  s += `## Skills\n\n`;
+  s += `Full text under \`.claude/skills/<name>/SKILL.md\`. Read the one that\n`;
+  s += `matches what you are doing rather than all of them.\n\n`;
+  skills.forEach(k => { s += `- \`${k}\`\n`; });
+  return s;
+}
+
+// The MOOTx01 overlay. Commands only — the handoff and plan-capture skills
+// are in the base bundle written against "your memory system", and are
+// simply better with an estate behind them.
+function mootCommands() {
+  return {
+    'prepare-for-compact.md': `Write the handoff and file it to the estate. Do this now, in this turn.
+
+You are writing for a colleague picking this work up cold. They can read
+the estate and the code. They cannot read this conversation.
+
+Give them context, not commands. No "you must", no "always", no checklist
+to obey. They get their own judgment once oriented.
+
+Cover: what you are building and why; where things stand, naming the
+in-progress thing precisely; decisions and the thinking behind them,
+especially the arbitrary-looking ones; what failed and how; exact strings
+quoted verbatim; what is still open; where you would pick up and why.
+
+Open the body with these four lines so a later session can tell your
+handoff from another agent's:
+
+    repo:    <repository name>
+    agent:   <your agent name>
+    branch:  <the branch, or none>
+    written: <ISO timestamp>
+
+If you are holding an approved plan, file the plan itself to
+plans/<project>/<plan-slug> and link the handoff to it derivesFrom. File
+the plan text, not a reference: working directories are usually
+gitignored, so a plan file there does not travel.
+
+File the handoff to session/<session_id>/handoff. If the estate is
+unreachable, print the whole thing in chat and say plainly that it did not
+file.
+
+Confirm in one line where it went, then say: Ready. Run /compact now.
+`,
+    'recover-from-compact.md': `Read your handoff and re-orient before doing any work.
+
+After a compact your session id is unchanged, so the direct lookup works.
+After a FRESH session it is a new id and you cannot know the old one. And
+more than one agent may work from this directory, so a bare search returns
+handoffs that are not yours.
+
+Resuming a compact:
+
+    moot_memory_get on session/<session_id>/handoff
+
+Otherwise search and expect several results:
+
+    moot_memory_search("handoff <repo-name>")
+
+For each candidate establish which repo it names, which agent wrote it,
+and how recent it is. Discard on repo, then agent, then take the most
+recent. If exactly one survives, say which and why.
+
+IF MORE THAN ONE SURVIVES, STOP AND ASK. List agent, timestamp, branch and
+first line of each. A wrong handoff does not announce itself: it reads as
+perfectly coherent context for work nobody was doing.
+
+Then check the repo against what the handoff claims. A handoff saying a
+branch was pushed against a repo saying otherwise means the push failed
+after the note was written. Trust the repo.
+
+Report orientation and wait. Do not start work in this turn.
+`,
+    'start-clean.md': `Write a COLD START handoff and file it to the estate.
+
+This session is ending and the next begins clean, possibly on a different
+model, possibly days later. Nothing carries over.
+
+So lead with orientation: what you are building and why comes first, in
+two paragraphs. What you happened to be doing when it stopped goes last.
+
+Everything else is as /prepare-for-compact: the four identity lines, the
+plan filed in full if you hold one, context rather than commands, exact
+strings quoted.
+
+File to session/<session_id>/handoff. Then say: Cold start handoff filed.
+In the new session, run /recover-from-compact.
+`
+  };
 }
 
 const ROLES = [
@@ -6276,8 +6452,39 @@ function buildZipEntries() {
     }
   }
 
-  entries.push({ path: `${root}/cli/CLAUDE.md`, content: genCLAUDEmd() });
-  entries.push({ path: `${root}/cli/settings.json`, content: genSettingsJSON() });
+  const tgt = targetChoice();
+
+  // Claude Code entry point. Emitted unless the target is Codex only.
+  if (tgt !== 'codex') {
+    entries.push({ path: `${root}/cli/CLAUDE.md`, content: genCLAUDEmd() });
+    entries.push({ path: `${root}/cli/settings.json`, content: genSettingsJSON() });
+  }
+
+  // Codex entry point. Same doctrine, one file at the repo root, with the
+  // skills left where they are and referenced by path. When both targets
+  // are selected it says which copy is authoritative, because two
+  // descriptions of one fleet drift the moment either is edited.
+  if (tgt === 'codex' || tgt === 'both') {
+    entries.push({
+      path: `${root}/AGENTS.md`,
+      content: buildAgentsMd(
+        ROLES.filter(r => state.agents[r.key].enabled),
+        allSkillKeys(),
+        state.project.name || 'project',
+        tgt === 'both')
+    });
+  }
+
+  // MOOTx01 overlay: the compact ritual as commands. The handoff and
+  // plan-capture SKILLS are in the base bundle already, written against
+  // "your memory system" -- these commands are what make the ritual one
+  // keystroke instead of a paragraph typed by hand.
+  if (useMoot()) {
+    const cmds = mootCommands();
+    Object.keys(cmds).forEach(name => {
+      entries.push({ path: `${root}/cli/commands/${name}`, content: cmds[name] });
+    });
+  }
 
   for (const role of ROLES) {
     if (!state.agents[role.key].enabled) continue;
