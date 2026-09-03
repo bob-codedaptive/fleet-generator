@@ -273,6 +273,33 @@ const PREREQS = [
   'I have 5–10 minutes to walk through the wizard'
 ];
 
+// Model tiers. Three roles, three choices, made together — see the
+// model-tiers skill for why this is a pairing rather than a dial.
+//
+// The reviewer is the most capable model in every configuration: it is one
+// pass over a finished diff, so it is cheap, and it is the only thing
+// between a plausible-looking change and the main branch.
+//
+// Workers sit at the mid tier. They receive a brief that contains
+// everything they need, so capability buys less here than anywhere else.
+//
+// The orchestrator is the interesting choice. A capable model here pays
+// for itself IF it dispatches; if it types the code itself it is the most
+// expensive possible arrangement. Pair a capable orchestrator with the
+// lean agent-file variant.
+const MODEL_TIERS = {
+  reviewer:     'opus',     // R — judges the orchestrator's work
+  orchestrator: 'opus',     // O — decomposes, dispatches, steers
+  worker:       'sonnet',   // W — the dispatched implementation units
+  preflight:    'sonnet',
+  scanner:      'sonnet',
+  default:      'sonnet'
+};
+
+function modelFor(roleKey) {
+  return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
+}
+
 const ROLES = [
   { key: 'orchestrator', name: 'Hobbes', title: 'Orchestrator', required: true,
     persona: "Strategic and thoughtful. Investigates before proposing. Asks sharp questions to narrow scope. Writes mission files that are clear enough for any code worker to follow without ambiguity. Never writes code. Recommends architectural approaches but defers final decisions to the human. Keeps conversations focused and resists tangents.",
@@ -284,10 +311,10 @@ const ROLES = [
   { key: 'worker', name: 'Woodstock', title: 'Code Worker', required: true,
     persona: "Thorough and methodical. Follows mission files step by step, never improvises. Spawns the pre-flight scanner before coding and the reviewer after the final commit — automatically, every mission. Commits after each implementation part with descriptive messages. Runs tests before declaring done. If a mission instruction is ambiguous, stops and asks rather than guessing. Takes pride in clean, readable code.",
     role: "The code worker for {{project}}. Reads a mission file, runs the standard subagent flow (pre-flight → implement → self-review → reviewer → specialists as needed), and implements one Part at a time.",
-    does: ["Read the mission and follow it step by step","Spawn the pre-flight scanner before coding","Implement one Part at a time","Run tests after each step","Commit with descriptive messages per Part","Spawn the reviewer after the final commit","Spawn specialist reviewers when their triggers fire"],
+    does: ["Read the mission and follow it step by step","Spawn the pre-flight scanner before coding","Implement the mission","Run tests after each step","Commit with descriptive messages per Part","Spawn the reviewer after the final commit","Spawn specialist reviewers when their triggers fire"],
     notDoes: ["Deviate from the mission","Make architecture decisions","Skip tests","Modify files not listed in the mission","Skip the pre-flight scan","Skip the reviewer"],
     skills: ["subagent-orchestration","pre-commit","self-review","git-workflow","blast-radius","mission-template","tdd","agent-commits","safety-rules","communication"],
-    descLine: "Code worker. Implements missions step by step, commits per Part, runs tests, never improvises. Pulls in subagents at standard checkpoints (pre-flight before coding, reviewer after final commit, specialists on trigger). MUST BE USED for any code change. Use PROACTIVELY when a mission file exists and is ready to execute." },
+    descLine: "Code worker. Implements missions step by step, runs the tests once, commits when green, never improvises. Pulls in subagents at standard checkpoints (pre-flight before coding, reviewer after final commit, specialists on trigger). MUST BE USED for any code change. Use PROACTIVELY when a mission file exists and is ready to execute." },
   { key: 'reviewer', name: 'Garfield', title: 'Reviewer', required: false,
     persona: "Meticulous and unsparing. Reviews every diff line by line against the mission spec. Produces a numbered punch list sorted by severity. Never modifies files. Dry humor in comments. Flags what others overlook: missing edge cases, untested paths, naming inconsistencies.",
     role: "Post-implementation reviewer for {{project}}. Compares the diff against the mission spec, produces a punch list, never touches files.",
@@ -352,6 +379,8 @@ const OPTIONAL_SKILLS = [
   { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
   { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
   { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
+  { key:'model-tiers',     label:'Model tiers (R/O/W)',       desc:'Per-role models. Why a model class implies a file shape.' },
+  { key:'dispatch-doctrine',label:'Dispatch doctrine',        desc:'The orchestrator dispatches. Typing is the failure.' },
   { key:'nexusmcp',         label:'NexusMCP persistent memory', desc:'Cross-session memory via knowledge graph.' }
 ];
 
@@ -1282,6 +1311,27 @@ These preferences apply to every response from every agent on
 - One short paragraph status reports, not transcripts
 - Specific over general: file:line refs over "in the file"
 - Cite, don't paraphrase, when summarizing existing docs
+
+# Commit cadence
+
+Complete the work. Run the touched tests once. Commit. Hand off.
+
+**The commit is free; the test run bolted to it is not.** A task that
+commits after every unit re-proves code it already proved, once per
+commit. That is the single largest repeat spend in most workflows and it
+buys nothing: agents do not roll back to a mid-run commit, they edit
+forward, and the branch survives a crash whether or not the work was
+committed.
+
+Commit whenever you have just tested green. That is normally once. A
+second commit after review findings are fixed is fine, because the review
+required a test run anyway. Eight commits means eight test runs.
+
+The evidence that a test actually gates the change - failing before the
+fix, passing after - belongs in the completion report, which records both
+results explicitly. It does not need to be a commit sequence.
+
+
 `
   },
 
@@ -1731,6 +1781,147 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'model-tiers': {
+    desc: "Choosing models per role, and why a model class implies an agent-file shape. The orchestrator, the workers it dispatches, and the reviewer are three separate choices.",
+    use: "Setting up a fleet. Deciding which model runs which agent. An orchestrator is writing code itself instead of dispatching. Costs are higher than expected. A capable model is behaving like a cheap one.",
+    body: `# Model tiers
+
+Three roles, three choices, made together:
+
+    R  reviewer      judges the orchestrator's work and orders fixes
+    O  orchestrator  decomposes, dispatches, reviews returned diffs
+    W  worker        the dispatched implementation units
+
+Choosing one and leaving the others to default is the common failure. A
+capable orchestrator dispatching to itself costs several times what the
+same work costs dispatched to a cheaper worker.
+
+## A model class implies an agent-file shape
+
+Newer, more capable models need fewer guardrails. Older or smaller models
+need the full procedural file.
+
+Keep two variants of your orchestrator agent:
+
+    orchestrator.md     full doctrine, for the smaller model
+    orchestrator-5.md   lean, for the capable model
+
+The lean file assumes capability: no step-by-step scaffolding, no repeated
+reminders, no procedure the model would have followed anyway. State the
+mandate, the boundaries, and the failure modes, and stop.
+
+Measured on one identical task across eight configurations: the lean file
+HALVED the cost of the capable model and passed, while it made every
+smaller model MORE expensive and no better. Doctrine size is not a
+quality dial you turn up. It is a pairing.
+
+**Running a capable model against the full file is the most common setup
+error.** It reads as the safe choice and it is not: the model spends its
+context on scaffolding it does not need, then has less left for the work,
+and starts doing the work itself rather than dispatching.
+
+## Sensible defaults
+
+| Mode | O | agent file | W |
+| --- | --- | --- | --- |
+| default | capable | lean | mid |
+| security or high-stakes | most capable | lean | mid |
+| budget | mid | full | mid |
+
+The reviewer is the most capable model you have, in every mode. It is one
+pass over a finished diff, so it is cheap, and it is the only thing
+standing between a plausible-looking change and your main branch.
+
+## Pin the worker model on every dispatch
+
+A dispatched call with no model specified runs on the CALLER's model. If
+your orchestrator is the expensive one, every unit it dispatches is
+expensive too, and the saving you designed disappears silently.
+
+Declare it once and apply it to every call:
+
+    const M = { model: '<worker-model>', effort: 'medium' }
+    await agent(BRIEF, { ...M, agentType: 'worker', label: 'parser' })
+
+## Watch the delegation number
+
+The share of tokens spent in dispatched units rather than in the
+orchestrator's own context predicts cost better than any other single
+number.
+
+Measured across live runs: orchestrators that dispatched their
+implementation units ran about 64% of tokens in subagents. Orchestrators
+that typed the code themselves ran 0 to 32%, and cost three to four times
+as much for comparable work.
+
+If that number is low, the orchestrator is being a typist. That is a
+doctrine problem, not a model problem, and no amount of model upgrade
+fixes it.
+`
+  },
+
+  'dispatch-doctrine': {
+    desc: "An orchestrator dispatches, monitors, corrects and steers. Writing the code itself is the failure of that job, not a shortcut to it.",
+    use: "An orchestrator is about to write code. Deciding whether work should be dispatched or done inline. Writing a brief for a dispatched unit. A dispatched unit came back wrong.",
+    body: `# Dispatch doctrine
+
+Judgment is yours. Typing is not.
+
+**When two or more units have disjoint file sets, dispatching is
+mandatory.** Not preferred. A task with eight files across five parts is a
+fan-out, and writing it yourself is a doctrine violation regardless of how
+well it turns out.
+
+The reviewer judges YOU, not the workers. A unit that comes back wrong is
+your brief being wrong.
+
+You may write code yourself in one case: a worker has botched the same
+unit badly or repeatedly, and a corrected brief has already failed. Not
+because it is faster, not because the change is small, not because you can
+see the fix. Log every instance with the reason a re-dispatch did not
+work.
+
+## A brief carries content, not process
+
+A brief is: the working directory and base commit; the ruling and why;
+verified facts with file:line anchors; what to build; what is out of
+scope; what to return.
+
+It is NOT the dispatch doctrine, the commit rules, the test discipline, or
+the safety rules. The agent file already carries those. Restating them
+spends the unit's context before it starts and teaches it nothing.
+
+This is expensive when you get it wrong. In one incident four workers each
+carried a full lifecycle their agent file already specified, and two burned
+their entire budget without writing a line of code.
+
+## Brief content decides the output
+
+Measured across eight parallel implementations of one identical task: the
+one whose brief named a specific protocol three times conformed to it; the
+one whose brief named a different protocol twenty times conformed to THAT
+one instead and lost the ability to assert on structure.
+
+Name the conformances, the boundary cases, and the exact wrong answers you
+are guarding against. A dispatched unit starts with none of your context.
+The brief is the whole world it gets.
+
+## Verify a fact before you anchor it
+
+A file:line reference that has moved sends the unit somewhere wrong with
+total confidence. Check it against the file, not against your memory of
+the file.
+
+## Review every returned diff
+
+A green suite is not evidence. Three crash bugs shipped from units whose
+own tests passed, all found by reading the diff rather than running it.
+
+Re-dispatch a wrong unit once with a corrected brief before fixing it
+yourself. The brief was probably the problem.
+`
+  },
+
   'gate-procedures': {
     desc: "How a reviewer decides whether a gate proves anything - falsification against the pre-fix commit, running the artifact rather than reading it, and what a rejection has to carry.",
     use: "Reviewing a returned diff. Deciding whether a test gates the change it claims to. Writing an approval or rejection. A change claims to be already fixed. Judging whether a green suite is evidence.",
@@ -3971,7 +4162,7 @@ with [MODE: {{SUBMIT}}].
 
 \\\`\\\`\\\`
 cd {{repo}}
-claude --agent {{worker_lc}} --model opus --dangerously-skip-permissions
+claude --agent {{worker_lc}} --model sonnet --dangerously-skip-permissions
 \\\`\\\`\\\`
 
 Then paste the mission content from the artifact.
@@ -4010,7 +4201,7 @@ cd {{repo}}
 3. Launch the worker:
 
 \\\`\\\`\\\`
-claude --agent {{worker_lc}} --model opus --dangerously-skip-permissions
+claude --agent {{worker_lc}} --model sonnet --dangerously-skip-permissions
 \\\`\\\`\\\`
 
 4. Paste the mission content from the artifact and hit return.
@@ -4544,7 +4735,7 @@ function genAgent(role) {
   const desc = sub(role.descLine);
   s += '  ' + desc.split('\n').join('\n  ') + '\n';
   s += 'tools: Read, Glob, Grep, Bash\n';
-  s += 'model: opus\n';
+  s += `model: ${modelFor(role.key)}\n`;
   if (skills.length) {
     s += 'skills:\n';
     skills.forEach(k => { s += `  - ${k}\n`; });
@@ -5907,7 +6098,7 @@ edit. To see what end users see, also open \`GUIDE.html\`.
 Run the tutorial ladder in order to learn the file structure:
 
 \`\`\`
-claude --agent ${kebab(w)} --model opus --dangerously-skip-permissions
+claude --agent ${kebab(w)} --model ${modelFor('worker')} --dangerously-skip-permissions
 # paste cli/missions/MISSION_TUTORIAL_1_RENAME_WORKER.md
 \`\`\`
 
@@ -5967,7 +6158,7 @@ The chat skills are:
 
 \`\`\`
 cd /path/to/your/repo
-claude --agent ${kebab(w)} --model opus --dangerously-skip-permissions
+claude --agent ${kebab(w)} --model ${modelFor('worker')} --dangerously-skip-permissions
 # paste a mission file's contents
 \`\`\`
 
@@ -6044,7 +6235,7 @@ echo "Chat skills are zipped in chat/ — drag them into claude.ai → Settings 
 echo ""
 echo "To run a mission:"
 echo "  cd $REPO"
-echo "  claude --agent ${w} --model opus --dangerously-skip-permissions"
+echo "  claude --agent ${w} --model ${modelFor('worker')} --dangerously-skip-permissions"
 echo "  # paste mission content"
 `;
 }
