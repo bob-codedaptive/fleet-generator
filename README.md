@@ -4,6 +4,10 @@ A browser wizard that generates a working agent fleet for Claude Code or
 Codex. One HTML file, no install, no build step. Open it, answer some
 questions, download a zip.
 
+**Now with [MOOTx01](https://github.com/codedaptive/mootx01-ce) integration:**
+an optional persistent-memory layer so a session can hand its own work to
+the next one.
+
 The output is a `.claude/` directory containing agent definitions, skills, hooks,
 settings, and an install script. Drop it in a repository and the agents are
 there next time you start a session.
@@ -91,8 +95,10 @@ defaults.
 
 ## Optional: persistent memory
 
-A checkbox adds a compact ritual for MOOTx01: `/prepare-for-compact`,
-`/start-clean`, and `/recover-from-compact`. The agent writes its own
+A checkbox adds a compact ritual for
+[MOOTx01](https://github.com/codedaptive/mootx01-ce): `/prepare-for-compact`,
+`/start-clean`, and `/recover-from-compact`. The commands need MOOTx01
+installed; leave the box unchecked if you are not running it. The agent writes its own
 handoff before context runs out, and the next session reads it back.
 
 The `handoff` and `plan-capture` skills ship regardless. They are written
