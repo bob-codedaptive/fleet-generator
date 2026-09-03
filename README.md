@@ -132,20 +132,3 @@ adding a skill or a hook.
 
 `sample_out/` is a snapshot rather than generated output, so it drifts when
 the wizard changes and needs a deliberate refresh.
-
-## Anvil, removed 2026-08-16
-
-`swift/` held Anvil, a Swift CLI that parsed, linted, edited and deployed
-`.claude/` libraries already on disk. It shared no code with the wizard.
-The wizard generates a bundle; Anvil audited one. It had gone four months
-untouched.
-
-It is in the history if it is wanted again:
-
-```bash
-git log --all -- swift/
-git checkout <sha> -- swift/
-```
-
-Removed rather than kept because a second, stale tool in the same repo
-reads as part of the wizard and is not.
