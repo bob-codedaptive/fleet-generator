@@ -513,7 +513,7 @@ only the packaging differs.</p>
 <table>
 <tr><th>Choice</th><th>What you get</th></tr>
 <tr><td><b>Claude Code</b></td><td><code>.claude/</code> with agents, skills, commands and hooks. The default.</td></tr>
-<tr><td><b>Codex</b></td><td><code>AGENTS.md</code> at the repository root, with the roles inlined and the skills referenced by path.</td></tr>
+<tr><td><b>Codex</b></td><td><code>AGENTS.md</code> at the repository root: a <b>map</b>, not a manual. About 45 lines that name the always-true rules and point at <code>.claude/</code> for everything else. It is read on every turn, so what is inlined there is paid for on every turn.</td></tr>
 <tr><td><b>Both</b></td><td>Both entry points from one source. The <code>AGENTS.md</code> states that the skill files are authoritative, because two descriptions of one fleet drift the moment either is edited.</td></tr>
 </table>
 

@@ -354,43 +354,57 @@ function useMoot() {
 // selected this file says which copy is authoritative, because two
 // descriptions of the same fleet drift the moment one is edited.
 function buildAgentsMd(roles, skills, project, both) {
+  // A MAP, NOT A MANUAL.
+  //
+  // AGENTS.md is read on every turn. Anything inlined here is paid for on
+  // every turn, whether or not it is needed -- and role definitions are
+  // needed only at the moment of dispatch.
+  //
+  // An earlier version inlined every role and every skill: 219 lines,
+  // ~1,600 tokens, permanently resident. That contradicted the one thing
+  // this fleet argues hardest, which is that capable models need less
+  // scaffolding rather than more. Feedback from two readers, independently,
+  // said the same thing.
+  //
+  // So: what this repo is, where to look, and the few rules that are always
+  // true. Everything else is a path.
   let s = `# AGENTS.md\n\n`;
-  s += `Agent fleet for ${project}.\n\n`;
-  if (both) {
-    s += `> Both Claude Code and Codex read this fleet. The skill files under\n`;
-    s += `> \`.claude/skills/\` are authoritative for behaviour; this file is the\n`;
-    s += `> Codex entry point and restates the roles only. Edit the skills.\n\n`;
-  }
-  s += `## How this fleet works\n\n`;
-  s += `Three roles, and the split between them is the point:\n\n`;
-  s += `- an **orchestrator** decomposes work and dispatches it\n`;
-  s += `- **workers** implement one unit each, from a brief\n`;
-  s += `- a **reviewer** judges the orchestrator's output\n\n`;
-  s += `The orchestrator writing the code itself is the failure of that job,\n`;
-  s += `not a shortcut to it. See \`.claude/skills/dispatch-doctrine/SKILL.md\`.\n\n`;
-  s += `## Models\n\n`;
-  s += `| Role | Model |\n| --- | --- |\n`;
-  roles.forEach(r => { s += `| ${r.title} | ${modelFor(r.key)} |\n`; });
-  s += `\nA model class implies an agent-file shape: capable models take the\n`;
-  s += `lean variant, smaller models take the full procedural one. Running a\n`;
-  s += `capable model against the full file is the most common setup error.\n`;
-  s += `See \`.claude/skills/model-tiers/SKILL.md\`.\n\n`;
+  s += `Agent fleet for ${project}. This file is a map. The detail lives in\n`;
+  s += `\`.claude/\` and is read when it is needed, not on every turn.\n\n`;
+
+  s += `## Always true\n\n`;
+  s += `- The orchestrator dispatches. Writing the code itself is the failure\n`;
+  s += `  of that job, not a shortcut to it.\n`;
+  s += `- A brief carries content, not process. The agent file already has the\n`;
+  s += `  doctrine; restating it spends the unit's context before it starts.\n`;
+  s += `- A test that passes before the fix is not a gate.\n`;
+  s += `- Run the tests once, commit when green. The commit is free; the test\n`;
+  s += `  run bolted to each one is not.\n\n`;
+
+  s += `## Where to look\n\n`;
+  s += `| You are about to | Read |\n| --- | --- |\n`;
+  s += `| act as a specific role | \`.claude/agents/<role>.md\` |\n`;
+  s += `| dispatch work | \`.claude/skills/dispatch-doctrine/SKILL.md\` |\n`;
+  s += `| choose models | \`.claude/skills/model-tiers/SKILL.md\` |\n`;
+  s += `| review a diff | \`.claude/skills/gate-procedures/SKILL.md\` |\n`;
+  s += `| chase a bug | \`.claude/skills/diagnosing-bugs/SKILL.md\` |\n`;
+  s += `| anything else | \`.claude/skills/\` — match the task, do not read all |\n\n`;
+
   s += `## Roles\n\n`;
   roles.forEach(r => {
-    s += `### ${r.title}\n\n${sub(r.role)}\n\n`;
-    s += `**Does:**\n`;   (r.does || []).forEach(d => { s += `- ${sub(d)}\n`; });
-    s += `\n**Does not:**\n`; (r.notDoes || []).forEach(d => { s += `- ${sub(d)}\n`; });
-    if (r.skills && r.skills.length) {
-      s += `\n**Skills:** ` + r.skills.map(k => `\`${k}\``).join(', ') + `\n`;
-    }
-    s += `\n`;
+    s += `- **${r.title}** (${modelFor(r.key)}) — \`.claude/agents/${kebab(r.title)}.md\`\n`;
   });
-  s += `## Skills\n\n`;
-  s += `Full text under \`.claude/skills/<name>/SKILL.md\`. Read the one that\n`;
-  s += `matches what you are doing rather than all of them.\n\n`;
-  skills.forEach(k => { s += `- \`${k}\`\n`; });
+  s += `\n${skills.length} skills are installed. Read the one that matches what\n`;
+  s += `you are doing.\n`;
+
+  if (both) {
+    s += `\n---\n\n`;
+    s += `Claude Code reads \`.claude/\` directly and does not need this file.\n`;
+    s += `Where the two disagree, the files under \`.claude/\` are authoritative.\n`;
+  }
   return s;
 }
+
 
 // The MOOTx01 overlay. Commands only — the handoff and plan-capture skills
 // are in the base bundle written against "your memory system", and are
