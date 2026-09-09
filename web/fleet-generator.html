@@ -329,6 +329,37 @@ function modelFor(roleKey) {
   return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
 }
 
+// Two variants per agent, the way the model-tiers skill prescribes.
+//
+// The suffix states INSTRUCTION DENSITY and the model pin follows from it:
+//
+//   <name>4   full procedural doctrine, for 4.x models
+//   <name>5   lean, capability assumed, for 5.x models
+//
+// The wizard emitted one file per role and then told the reader to keep two
+// by hand. It now emits both, so the pairing the tier table depends on
+// actually exists in the bundle.
+//
+// The lean variant keeps identity, the job, the boundaries and the output
+// shape, and drops the step-by-step expansion of does[]/notDoes[] that a
+// capable model does not need spelled out.
+function agentVariants(role) {
+  return [
+    { suffix: '4', model: MODEL_TIERS_4[role.key] || 'sonnet', lean: false },
+    { suffix: '5', model: modelFor(role.key),                  lean: true  }
+  ];
+}
+
+// 4.x pins. A 4-file is always paired with a 4.x model; that is the whole
+// point of the suffix.
+const MODEL_TIERS_4 = {
+  orchestrator: 'sonnet', coordinator: 'sonnet', reviewer: 'sonnet',
+  worker: 'sonnet', preflight: 'sonnet', postflight: 'sonnet',
+  submission: 'sonnet', architect: 'sonnet', docs: 'sonnet',
+  security: 'sonnet', a11y: 'sonnet', perf: 'sonnet',
+  math: 'sonnet', rootcause: 'sonnet', visual: 'sonnet'
+};
+
 // ---- Target and memory -------------------------------------------------
 // Every skill the generated fleet will contain: the union of what each
 // enabled role declares, plus any optional skill toggled on. Used by the
@@ -550,6 +581,27 @@ const ROLES = [
     notDoes: ["Write code","Make final decisions (recommend only)","Modify files"],
     skills: ["mission-scoping","blast-radius","source-of-truth"],
     descLine: "Architecture reviewer. Read-only. Spawned for missions with non-trivial design choices — touching shared primitives, cross-system surfaces, or multi-quarter implications. Surfaces tradeoffs and second-order effects. MUST BE USED when missions depart from established patterns or introduce patterns others will follow." },
+  { key: 'math', name: 'Ada', title: 'Numeric Specialist', required: false,
+    persona: "Precise with arithmetic and geometry. Shows the derivation, not just the result.",
+    role: "Numeric specialist for {{project}}. Spawned for missions involving bitmap arithmetic, coordinate math, rounding, overflow, or anything where an off-by-one is a silent wrong answer rather than a crash.",
+    does: ["Derive the arithmetic before writing it, and show the derivation","Name the boundary values: zero, one, max, max+1, negative, empty","Check every narrowing conversion on a value reachable from input","State the rounding mode and why it is the right one","Write the test at the boundary, not in the middle of the range"],
+    notDoes: ["Approximate when exactness is available","Leave a magic constant unexplained","Assume the input range without checking the caller"],
+    skills: ["tdd","blast-radius","diagnosing-bugs","safety-rules","communication"],
+    descLine: "Numeric specialist. Bitmap arithmetic, coordinates, rounding and overflow, where an off-by-one is a wrong answer rather than a crash." },
+  { key: 'rootcause', name: 'Sherlock', title: 'Root-cause Investigator', required: false,
+    persona: "Patient and literal. Builds a failing loop before forming a theory.",
+    role: "Root-cause investigator for {{project}}. Read-only. Spawned for a stuck mission, an intermittent failure, or a bug whose cause has already been guessed at twice.",
+    does: ["Get a command that fails on this bug, reliably, before reading code to build a theory","Write three to five falsifiable hypotheses before testing any of them","State what you would observe if each were true, and if it were not","Report the file, the exit code, and the last line of stderr","Distinguish a content problem from an environment problem from a bookkeeping problem"],
+    notDoes: ["Edit production code","Form a hypothesis before the failing loop exists","Report a suspicion as a finding"],
+    skills: ["diagnosing-bugs","blast-radius","safety-rules","communication"],
+    descLine: "Root-cause investigator. Read-only. Builds a failing loop first, then ranks falsifiable hypotheses. For stuck missions and intermittent failures." },
+  { key: 'visual', name: 'Escher', title: 'Visual Consistency Reviewer', required: false,
+    persona: "Notices what is inconsistent before what is ugly.",
+    role: "Visual consistency reviewer for {{project}}. Read-only. Spawned after the post-flight gate clears, for changes that touch anything a user sees.",
+    does: ["Compare against the existing surface rather than against taste","Name the token, spacing scale, or component the change departs from","Check the states nobody screenshots: empty, loading, error, longest plausible string","Check it at the smallest and largest supported size"],
+    notDoes: ["Edit production code","Redesign what was not in scope","Raise preference as a defect"],
+    skills: ["blast-radius","safety-rules","communication"],
+    descLine: "Visual consistency reviewer. Read-only. Checks a change against the existing surface and the states nobody screenshots." },
   { key: 'docs', name: 'Linus', title: 'Doc Writer', required: false,
     persona: "Articulate and patient. Writes documentation that a new user can follow without prior context. Prefers concrete examples over abstract explanations. Tests instructions by mentally walking through them. Keeps language simple. Never assumes jargon.",
     role: "Documentation author for {{project}}. Writes guides, READMEs, and inline docs. Updates docs when code changes.",
@@ -4931,7 +4983,10 @@ function parseLines(s) {
   return (s || '').split('\n').map(l => l.trim()).filter(Boolean);
 }
 
-function genAgent(role) {
+function genAgent(role, variant) {
+  // variant: { suffix, model, lean }. Absent falls back to the legacy
+  // single-file shape so any other caller still works.
+  const av = variant || { suffix: '', model: modelFor(role.key), lean: false };
   const a = state.agents[role.key];
   const name = a.name || role.name;
   const persona = (a.persona && a.persona.trim()) || role.persona;
@@ -4944,12 +4999,12 @@ function genAgent(role) {
   const skills = role.skills || [];
 
   let s = '---\n';
-  s += `name: ${slug}\n`;
+  s += `name: ${slug}${av.suffix}\n`;
   s += 'description: >-\n';
   const desc = sub(role.descLine);
   s += '  ' + desc.split('\n').join('\n  ') + '\n';
   s += 'tools: Read, Glob, Grep, Bash\n';
-  s += `model: ${modelFor(role.key)}\n`;
+  s += `model: ${av.model}\n`;
   if (skills.length) {
     s += 'skills:\n';
     skills.forEach(k => { s += `  - ${k}\n`; });
@@ -5004,6 +5059,27 @@ function genAgent(role) {
   s += `- Verbosity: ${verbosityWord(state.prefs.verbosity)}\n`;
   s += `- Emoji: ${state.prefs.emoji ? 'allowed' : 'not used'}\n`;
   s += `- When uncertain: ${state.prefs.uncertainty === 'guess+flag' ? 'best guess, flag the assumption' : 'ask first'}\n`;
+  // A lean variant assumes capability. It keeps identity, role, what the
+  // agent does and does not do, the gates, and the output shape. It drops
+  // the sections that restate frontmatter or walk through a procedure the
+  // model would follow anyway.
+  //
+  // Done here rather than inline so the full-doctrine path stays exactly as
+  // it was: one code path builds the file, the lean variant is that file
+  // with named sections removed.
+  if (av.lean) {
+    const drop = ['## Skills you apply', '## Standard subagent flow',
+                  '## Tiered context', '## Capabilities'];
+    for (const h of drop) {
+      const at = s.indexOf(h);
+      if (at === -1) continue;
+      let end = s.indexOf('\n## ', at + 1);
+      if (end === -1) end = s.length;
+      s = s.slice(0, at) + s.slice(end + 1);
+    }
+    s = s.replace(/\n{3,}/g, '\n\n');
+  }
+
   return s;
 }
 
@@ -6527,7 +6603,16 @@ function buildZipEntries() {
   for (const role of ROLES) {
     if (!state.agents[role.key].enabled) continue;
     const slug = agentSlug(role.key);
-    entries.push({ path: `${root}/cli/agents/${slug}.md`, content: genAgent(role) });
+    // Both variants. The suffix states instruction density and the model
+    // pin follows: <slug>4 is full doctrine for a 4.x model, <slug>5 is lean
+    // for a 5.x one. The tier table depends on that pairing existing, so the
+    // bundle ships it rather than telling the reader to build it by hand.
+    for (const v of agentVariants(role)) {
+      entries.push({
+        path: `${root}/cli/agents/${slug}${v.suffix}.md`,
+        content: genAgent(role, v)
+      });
+    }
   }
 
   // Mandatory CLI skills (always in)
