@@ -170,7 +170,21 @@
         </div>
       </div>
     </div>
-      <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+        <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+        <h3 class="font-bold text-stone-700 mb-1 text-sm">Models available</h3>
+        <p class="text-xs text-stone-400 mb-4">Which large-window models you can reach. The role split is the same either way.</p>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio" name="family" value="opus" checked oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+            <span class="text-sm text-stone-700">Opus and Sonnet &mdash; <span class="text-stone-400">the common case; everything premium runs on Opus</span></span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio" name="family" value="fable" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+            <span class="text-sm text-stone-700">Fable-class too &mdash; <span class="text-stone-400">orchestrator and escalation coder move to Fable; Opus keeps the judgment roles</span></span>
+          </label>
+        </div>
+      </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
       <h3 class="font-bold text-stone-700 mb-1 text-sm">Target</h3>
       <p class="text-xs text-stone-400 mb-4">Which assistant reads this fleet. The doctrine is the same; only the packaging differs.</p>
       <div class="space-y-2">
@@ -314,6 +328,40 @@ const PREREQS = [
 // for itself IF it dispatches; if it types the code itself it is the most
 // expensive possible arrangement. Pair a capable orchestrator with the
 // lean agent-file variant.
+// Which large-window model fills each premium role.
+//
+// The role SPLIT does not change between these: the same roles accumulate,
+// the same ones are one-shot, the same two gate. Only the model filling the
+// premium slots moves, which is why this is a lookup and not a second set
+// of tiers.
+//
+// Both are known to work. The fleet this models ran the orchestrator, the
+// escalation coder and three specialists on Fable for weeks, then moved all
+// of them to Opus in one pass when the Fable quota ran out — same roles,
+// same doctrine, no structural change. That is the evidence for offering
+// the choice rather than picking one.
+//
+// Opus keeps the JUDGMENT roles in both profiles. The coordinator writes
+// every brief and reviews every returned diff, and post-flight is the only
+// independent check on a diff; those are where being wrong is most
+// expensive, and Opus is the only model measured to pass the gauntlet on
+// both doctrine sizes.
+const FAMILY_TIERS = {
+  opus: {
+    orchestrator: 'opus', coordinator: 'opus', ace: 'opus',
+    security: 'opus',     architect: 'opus',   math: 'opus'
+  },
+  fable: {
+    orchestrator: 'fable', coordinator: 'opus', ace: 'fable',
+    security: 'fable',    architect: 'fable',  math: 'fable'
+  }
+};
+
+function modelFamily() {
+  const el = document.querySelector('input[name="family"]:checked');
+  return el ? el.value : 'opus';
+}
+
 const MODEL_TIERS = {
   orchestrator: 'opus',     // O — decomposes, dispatches, steers
   worker:       'sonnet',   // W — the dispatched implementation units
@@ -328,7 +376,10 @@ const MODEL_TIERS = {
 };
 
 function modelFor(roleKey) {
-  return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
+  // The family overrides only the premium roles; everything else
+  // takes its tier, which does not vary between profiles.
+  const fam = FAMILY_TIERS[modelFamily()] || {};
+  return fam[roleKey] || MODEL_TIERS[roleKey] || MODEL_TIERS.default;
 }
 
 // Context window, which the tier table cannot express.
@@ -2277,6 +2328,27 @@ quality dial you turn up. It is a pairing.
 error.** It reads as the safe choice and it is not: the model spends its
 context on scaffolding it does not need, then has less left for the work,
 and starts doing the work itself rather than dispatching.
+
+## If you do not have a Fable-class model
+
+You do not need one. Step 5 has a model-family picker and the default
+assumes Opus and Sonnet only.
+
+Both configurations are known to work rather than assumed. The fleet this
+is modelled on ran the orchestrator, the escalation coder and three
+specialists on Fable for weeks, then moved all of them to Opus in one pass
+when the Fable quota ran out. Same roles, same doctrine, no structural
+change.
+
+What does NOT move between the profiles is the role split: the same roles
+accumulate, the same ones are one-shot, the same two gate. Only which
+large-window model fills the premium slots changes.
+
+And Opus keeps the JUDGMENT roles either way -- the coordinator, which
+writes every brief and reviews every returned diff, and post-flight, which
+with no separate reviewer is the only independent check on a diff. Those
+are where being wrong costs most, and Opus is the only model measured to
+pass on both doctrine sizes.
 
 ## Sensible defaults
 
