@@ -317,7 +317,8 @@ const MODEL_TIERS = {
   reviewer:     'opus',     // R — judges the orchestrator's work
   orchestrator: 'opus',     // O — decomposes, dispatches, steers
   worker:       'sonnet',   // W — the dispatched implementation units
-  coordinator:  'opus',     // dispatches; pays for itself IF it dispatches
+  coordinator:  'opus',     // accumulates: needs the large window
+  ace:          'opus',     // third attempt; a different job, not a bigger coder     // dispatches; pays for itself IF it dispatches
   preflight:    'sonnet',
   postflight:   'sonnet',
   submission:   'sonnet',
@@ -328,6 +329,27 @@ const MODEL_TIERS = {
 function modelFor(roleKey) {
   return MODEL_TIERS[roleKey] || MODEL_TIERS.default;
 }
+
+// Context window, which the tier table cannot express.
+//
+// Some roles hold one job from start to finish and ACCUMULATE: the
+// coordinator reads a mission, writes a brief per unit, dispatches, reads
+// every returned diff, drives the gates. On a small-window model that
+// compacts mid-job, and what a compact discards is exactly the context
+// that made it a good reviewer of the NEXT diff -- what the last unit got
+// wrong, why the brief was corrected, what the gate already ruled on.
+//
+// The model does not get worse. It gets amnesia at the point where
+// continuity was the whole value. Do not "save money" by moving an
+// accumulating role to a small-window model: the per-token saving is real
+// and it buys a coordinator that forgets the wave it is running.
+//
+// Roles that accumulate: orchestrator, coordinator, reviewer.
+// Roles that do not: every gate and every read-only specialist. They read
+// a bounded input, apply one lens, report, and die -- so a large window
+// buys them nothing and the premium tier pays for capability the job never
+// uses.
+const ACCUMULATES = ['orchestrator', 'coordinator', 'reviewer'];
 
 // Two variants per agent, the way the model-tiers skill prescribes.
 //
@@ -581,6 +603,13 @@ const ROLES = [
     notDoes: ["Write code","Make final decisions (recommend only)","Modify files"],
     skills: ["mission-scoping","blast-radius","source-of-truth"],
     descLine: "Architecture reviewer. Read-only. Spawned for missions with non-trivial design choices — touching shared primitives, cross-system surfaces, or multi-quarter implications. Surfaces tradeoffs and second-order effects. MUST BE USED when missions depart from established patterns or introduce patterns others will follow." },
+  { key: 'ace', name: 'Ace', title: 'Last-resort Coder', required: false,
+    persona: "Reads the wreckage before touching anything. Says plainly when a unit cannot be built as written.",
+    role: "Last-resort coder for {{project}}. Dispatched ONLY after the worker has failed the same unit twice, the second time with a corrected brief. Reads both failed attempts, establishes why they failed, and is authorised to rule that the unit cannot be built as specified.",
+    does: ["Refuse the unit and hand it back if it has NOT already failed twice with a corrected brief","Read both failed diffs, both gate verdicts, and both briefs before writing anything","Establish WHY: failing the same way twice is about the approach, failing differently is about the brief","Return RESCOPE_REQUIRED with what is actually true when the unit cannot be built as written","Prove every new gate FAILS against the pre-fix commit, and report both results"],
+    notDoes: ["Try harder along the approach that already failed twice","Quietly work around a brief you believe is wrong — say it is wrong","Expand scope because you are the last resort","Accept a unit dispatched to you early"],
+    skills: ["diagnosing-bugs","gate-procedures","blast-radius","tdd","safety-rules","communication"],
+    descLine: "Last-resort coder. Dispatched only after two failed attempts. Reads both, establishes why, and may rule the unit unbuildable as specified." },
   { key: 'math', name: 'Ada', title: 'Numeric Specialist', required: false,
     persona: "Precise with arithmetic and geometry. Shows the derivation, not just the result.",
     role: "Numeric specialist for {{project}}. Spawned for missions involving bitmap arithmetic, coordinate math, rounding, overflow, or anything where an off-by-one is a silent wrong answer rather than a crash.",
@@ -645,6 +674,7 @@ const OPTIONAL_SKILLS = [
   { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
   { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
   { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
+  { key:'escalation-ladder', label:'Escalation ladder',        desc:'A wrong unit is usually a wrong brief. Fix that first.' },
   { key:'model-tiers',     label:'Model tiers (R/O/W)',       desc:'Per-role models. Why a model class implies a file shape.' },
   { key:'dispatch-doctrine',label:'Dispatch doctrine',        desc:'The orchestrator dispatches. Typing is the failure.' },
   { key:'nexusmcp',         label:'NexusMCP persistent memory', desc:'Cross-session memory via knowledge graph.' }
@@ -2047,6 +2077,59 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'escalation-ladder': {
+    desc: "What to do when a unit comes back wrong. Three rungs, and the middle one is the one that gets skipped.",
+    use: "A dispatched unit came back wrong. Deciding whether to re-dispatch or change models. About to escalate to a more capable model. A unit has failed twice.",
+    body: `# The escalation ladder
+
+A unit came back wrong. You have three rungs, and they are in this order
+for a reason.
+
+**Attempt 1.** The default worker, with the brief you wrote.
+
+**Attempt 2.** The same worker, on the SAME model, with a CORRECTED brief.
+
+This is the rung that gets skipped and the one that usually works. A unit
+that comes back wrong is your brief being wrong far more often than the
+model being short.
+
+Measured across eight parallel implementations of one identical mission:
+the arms diverged on what the BRIEF named, not on what the model could do.
+The arm whose brief named a protocol three times conformed to it; the arm
+whose brief named a different one twenty times conformed to that instead
+and lost the ability to assert on structure.
+
+So before changing the model, ask what the brief failed to say. Name the
+conformances. Name the boundary cases. Name the exact wrong answer you got
+and say it is wrong.
+
+**Attempt 3.** The ace, and say in one line what the corrected brief still
+could not carry. "Returned the same shape twice with an explicit
+counter-example in the brief" is a reason. "Complex" is not.
+
+## Why the third rung is a different ROLE, not a bigger model
+
+The third attempt is a different job. It has artifacts no ordinary worker
+gets: two failed diffs, two gate verdicts, and two briefs with the delta
+between them. Reading those first is the whole value, and a worker that
+treats the corrected brief as a fresh unit throws them away.
+
+It also has an authority an ordinary worker does not: it may rule the unit
+cannot be built as specified. Two attempts have already tried building it.
+If it were buildable as written, one of them probably would have.
+
+## The asymmetry this exists to correct
+
+Escalating feels like doing something. Rewriting a brief feels like
+admitting the first one was bad.
+
+That asymmetry is why the middle rung gets skipped, and why a fleet with
+an escalation path reaches for it more often than the evidence justifies.
+If you are on the third rung regularly, the briefs are carrying too little
+and escalation is hiding it rather than fixing it.
+`
+  },
+
   'model-tiers': {
     desc: "Choosing models per role, and why a model class implies an agent-file shape. The orchestrator, the workers it dispatches, and the reviewer are three separate choices.",
     use: "Setting up a fleet. Deciding which model runs which agent. An orchestrator is writing code itself instead of dispatching. Costs are higher than expected. A capable model is behaving like a cheap one.",
