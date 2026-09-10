@@ -573,7 +573,7 @@ const ROLES = [
   { key: 'coordinator', name: 'Bilby', title: 'Coordinator', required: false,
     persona: "Runs one wave and owns it. Dispatches, monitors, corrects, steers to done. Does not write the code.",
     role: "Wave coordinator for {{project}}. Takes one mission from the orchestrator and runs it to completion: decomposes it into units, dispatches each to a worker, drives the gates, and reports state. Judgment is yours; typing is not.",
-    does: ["Decompose a mission into units with disjoint file sets","Dispatch each unit to a worker with the model pinned","Run the pre-flight gate before any edit, and the post-flight gate before handoff — both are MANDATORY and blocking","Review every returned diff rather than trusting a green suite","Re-dispatch a wrong unit once with a corrected brief before fixing it yourself","Report state transitions"],
+    does: ["Run the blast radius BEFORE decomposing — it gives the real file set, including what the mission did not name","Cut into units along the disjoint boundaries the radius shows, up to THREE coders; fewer is normal and more means it is more than one mission","Dispatch each unit to a worker on its own child worktree, cut from yours","Wait for ALL coders before merging any of them — an early merge moves the base the others were cut from","Merge, tear down the children, THEN run the post-flight gate on the combined result","Run the pre-flight gate before any edit, and the post-flight gate before handoff — both are MANDATORY and blocking","Review every returned diff rather than trusting a green suite","Re-dispatch a wrong unit once with a corrected brief before fixing it yourself","Report state transitions"],
     notDoes: ["Write the code when two or more units have disjoint file sets — that is a fan-out and dispatching is mandatory","Author process into a brief — the agent file already carries it","Skip a gate because the change looks small","Push"],
     skills: ["dispatch-doctrine","model-tiers","gate-procedures","blast-radius","mission-template","safety-rules","communication"],
     descLine: "Wave coordinator. Takes one mission and runs it to completion by dispatching units, driving the gates, and steering to done. Writes no production code." },
@@ -683,6 +683,7 @@ const OPTIONAL_SKILLS = [
   { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
   { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
   { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
+  { key:'wave-fanout',      label:'Running a wave',           desc:'Child worktrees, merge then gate, three coders max.' },
   { key:'escalation-ladder', label:'Escalation ladder',        desc:'A wrong unit is usually a wrong brief. Fix that first.' },
   { key:'model-tiers',     label:'Model tiers (R/O/W)',       desc:'Per-role models. Why a model class implies a file shape.' },
   { key:'dispatch-doctrine',label:'Dispatch doctrine',        desc:'The orchestrator dispatches. Typing is the failure.' },
@@ -2086,6 +2087,95 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'wave-fanout': {
+    desc: "How a wave actually runs: child worktrees per coder, all finish before any merge, gates on the combined result. And why the dispatch tool depends on whether you are a main session or a subagent.",
+    use: "Running a wave. Deciding how many units to cut a mission into. A dispatch failed with a missing tool. Merging parallel work back together. Deciding whether to gate per unit or once at the end.",
+    body: `# Running a wave
+
+The coordinator holds a worktree. Each coder gets a child worktree cut from
+IT. They all finish, then the merges, then the gates on the combined
+result, then teardown.
+
+\`\`\`
+   coordinator worktree
+        |
+        +-- a child worktree per unit, cut off the COORDINATOR's head
+        |
+        |   unit-1     unit-2     unit-3     <- parallel, disjoint files
+        |                                       THREE IS THE CEILING
+        +-----+----------+----------+
+        |
+        |   merge each child back, in order; tear the children down
+        |
+        +-- pre-flight ran before dispatch; post-flight runs HERE
+        |
+        +-- commit, report
+\`\`\`
+
+## All coders finish before any merge
+
+Not first-finished-first-merged. A unit that merges early moves the base
+the others were cut from, and the next merge conflicts against work its
+author never saw.
+
+Collect every report, then merge in dependency order.
+
+## The gates run once, on the combined result
+
+Pre-flight before you dispatch, on the mission, since there is no code yet.
+Post-flight after the merge, on what actually shipped.
+
+**This is the reason a coordinator exists.** A gate on unit 2 in isolation
+cannot see that unit 2 and unit 3 together break something. A gate on the
+merged result can, and that is precisely the class of defect a fan-out
+creates.
+
+## The blast radius decides the unit count
+
+Run it before decomposing. It gives you the real file set including what
+the mission did not name, and THAT is what you cut into units — not the
+mission's part list.
+
+Then cut along the disjoint boundaries it shows. **Up to three coders.**
+
+Three, because each coder is a worktree, a merge and a report you read: a
+fourth is not 33% more work, it is a fourth merge against a base three
+others already moved. And a radius rarely yields four genuinely disjoint
+sets — if it looks like it does, two of them usually share a file you did
+not notice, and you find out at merge time.
+
+Fewer than three is normal. The number comes from the radius, not from
+filling the slots.
+
+**If it will not cut into disjoint sets**, run the units sequentially and
+say so. That is a legitimate outcome and much better than discovering the
+overlap mid-merge.
+
+**If the work needs more than three**, it is more than one mission. Report
+that upward rather than splitting it yourself — decomposition across
+missions belongs to the orchestrator.
+
+## Your dispatch tool depends on where you are
+
+A main session has both a workflow-style dispatcher and a plain agent
+dispatcher. **A subagent has only the plain one.**
+
+That matters because the coordinator is itself dispatched, so it is a
+subagent. A coordinator told to use the workflow dispatcher fails at its
+first fan-out with the tool reported missing, and the whole wave stops.
+
+The plain dispatcher takes the model from the AGENT FILE rather than a
+parameter. So:
+
+- Dispatch a coordinator with the plain dispatcher, not the workflow one.
+- Every agent must be pinned, because the file is the only place the model
+  can come from.
+- A pin cannot be overridden from inside a subagent. If a unit needs a
+  different model, it needs a different agent — which is what a last-resort
+  coder is for.
+`
+  },
+
   'escalation-ladder': {
     desc: "What to do when a unit comes back wrong. Three rungs, and the middle one is the one that gets skipped.",
     use: "A dispatched unit came back wrong. Deciding whether to re-dispatch or change models. About to escalate to a more capable model. A unit has failed twice.",
