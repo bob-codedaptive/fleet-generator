@@ -302,9 +302,10 @@ const PREREQS = [
 // Model tiers. Three roles, three choices, made together — see the
 // model-tiers skill for why this is a pairing rather than a dial.
 //
-// The reviewer is the most capable model in every configuration: it is one
-// pass over a finished diff, so it is cheap, and it is the only thing
-// between a plausible-looking change and the main branch.
+// The post-flight gate is the most capable model available: it is one pass
+// over a finished diff from a blank context, so it is cheap, and with no
+// separate wave reviewer it is the only thing between a plausible-looking
+// change and the main branch.
 //
 // Workers sit at the mid tier. They receive a brief that contains
 // everything they need, so capability buys less here than anywhere else.
@@ -319,7 +320,8 @@ const MODEL_TIERS = {
   coordinator:  'opus',     // accumulates: needs the large window
   ace:          'opus',     // third attempt; a different job, not a bigger coder     // dispatches; pays for itself IF it dispatches
   preflight:    'sonnet',
-  postflight:   'sonnet',
+  postflight:   'opus',    // the only independent check on a diff now
+                           // that there is no separate wave reviewer
   submission:   'sonnet',
   scanner:      'sonnet',
   default:      'sonnet'
@@ -335,7 +337,7 @@ function modelFor(roleKey) {
 // coordinator reads a mission, writes a brief per unit, dispatches, reads
 // every returned diff, drives the gates. On a small-window model that
 // compacts mid-job, and what a compact discards is exactly the context
-// that made it a good reviewer of the NEXT diff -- what the last unit got
+// that made it a good judge of the NEXT diff -- what the last unit got
 // wrong, why the brief was corrected, what the gate already ruled on.
 //
 // The model does not get worse. It gets amnesia at the point where
@@ -343,7 +345,7 @@ function modelFor(roleKey) {
 // accumulating role to a small-window model: the per-token saving is real
 // and it buys a coordinator that forgets the wave it is running.
 //
-// Roles that accumulate: orchestrator, coordinator, reviewer.
+// Roles that accumulate: orchestrator, coordinator.
 // Roles that do not: every gate and every read-only specialist. They read
 // a bounded input, apply one lens, report, and die -- so a large window
 // buys them nothing and the premium tier pays for capability the job never
@@ -389,7 +391,7 @@ const SMALL_WINDOW = ['sonnet', 'haiku'];
 // 4.x pins. A 4-file is always paired with a 4.x model; that is the whole
 // point of the suffix.
 const MODEL_TIERS_4 = {
-  orchestrator: 'sonnet', coordinator: 'sonnet', reviewer: 'sonnet',
+  orchestrator: 'sonnet', coordinator: 'sonnet',
   worker: 'sonnet', preflight: 'sonnet', postflight: 'sonnet',
   submission: 'sonnet', architect: 'sonnet', docs: 'sonnet',
   security: 'sonnet', a11y: 'sonnet', perf: 'sonnet',
@@ -2157,10 +2159,20 @@ same work costs dispatched to a cheaper worker.
 Newer, more capable models need fewer guardrails. Older or smaller models
 need the full procedural file.
 
-Keep two variants of your orchestrator agent:
+The generator makes that pairing for you: each agent file is written at
+its role's tier, lean where the model is capable and full-doctrine where it
+is not. You do not keep two versions.
 
-    orchestrator.md     full doctrine, for the smaller model
-    orchestrator-5.md   lean, for the capable model
+That is deliberate. Shipping both a full and a lean file for every role
+produced ten orphans in the fleet this is modelled on -- one dispatched,
+one dead twin that still synced everywhere and drifted unmaintained. One
+reached 784 lines against its twin's 126, because only the dispatched one
+was ever edited.
+
+If a role genuinely needs both -- a general coder is the real case, where
+the same job runs at two tiers depending on the work -- copy the file, trim
+it, and pin the second by hand. One role wanting two variants is a
+decision; every role having two is an accident.
 
 The lean file assumes capability: no step-by-step scaffolding, no repeated
 reminders, no procedure the model would have followed anyway. State the
