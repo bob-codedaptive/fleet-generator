@@ -314,7 +314,6 @@ const PREREQS = [
 // expensive possible arrangement. Pair a capable orchestrator with the
 // lean agent-file variant.
 const MODEL_TIERS = {
-  reviewer:     'opus',     // R — judges the orchestrator's work
   orchestrator: 'opus',     // O — decomposes, dispatches, steers
   worker:       'sonnet',   // W — the dispatched implementation units
   coordinator:  'opus',     // accumulates: needs the large window
@@ -349,7 +348,7 @@ function modelFor(roleKey) {
 // a bounded input, apply one lens, report, and die -- so a large window
 // buys them nothing and the premium tier pays for capability the job never
 // uses.
-const ACCUMULATES = ['orchestrator', 'coordinator', 'reviewer'];
+const ACCUMULATES = ['orchestrator', 'coordinator'];
 
 // Two variants per agent, the way the model-tiers skill prescribes.
 //
@@ -366,11 +365,26 @@ const ACCUMULATES = ['orchestrator', 'coordinator', 'reviewer'];
 // shape, and drops the step-by-step expansion of does[]/notDoes[] that a
 // capable model does not need spelled out.
 function agentVariants(role) {
-  return [
-    { suffix: '4', model: MODEL_TIERS_4[role.key] || 'sonnet', lean: false },
-    { suffix: '5', model: modelFor(role.key),                  lean: true  }
-  ];
+  // ONE variant per role, at that role's tier.
+  //
+  // Emitting both a 4 and a 5 for every role produced ten orphans in the
+  // fleet this is modelled on: one dispatched, one dead twin that still
+  // synced everywhere and drifted unmaintained. adams4 reached 784 lines
+  // against adams5's 126 because only the dispatched one was ever edited.
+  //
+  // A role that ACCUMULATES cannot take a small-window model, and a role
+  // that is bounded and needs no premium judgment does not want a large
+  // one. Either way the choice is made once, per role, here -- not left as
+  // two files for a reader to pick between.
+  //
+  // If a role genuinely needs both (a general coder is the real case),
+  // copy the file, trim it, and pin the second one by hand. The
+  // model-tiers skill says how.
+  return [{ suffix: '', model: modelFor(role.key), lean: !SMALL_WINDOW.includes(modelFor(role.key)) }];
 }
+
+// Models whose window is too small to hold an accumulating role.
+const SMALL_WINDOW = ['sonnet', 'haiku'];
 
 // 4.x pins. A 4-file is always paired with a 4.x model; that is the whole
 // point of the suffix.
@@ -568,13 +582,6 @@ const ROLES = [
     notDoes: ["Deviate from the mission","Make architecture decisions","Skip tests","Skip the pre-flight or post-flight gate because the change looks small — that judgment belongs to the reviewer","Modify files not listed in the mission","Skip the pre-flight scan","Skip the reviewer"],
     skills: ["subagent-orchestration","pre-commit","self-review","git-workflow","blast-radius","mission-template","tdd","agent-commits","safety-rules","communication"],
     descLine: "Code worker. Implements missions step by step, runs the tests once, commits when green, never improvises. Pulls in subagents at standard checkpoints (pre-flight before coding, reviewer after final commit, specialists on trigger). MUST BE USED for any code change. Use PROACTIVELY when a mission file exists and is ready to execute." },
-  { key: 'reviewer', name: 'Garfield', title: 'Reviewer', required: false,
-    persona: "Meticulous and unsparing. Reviews every diff line by line against the mission spec. Produces a numbered punch list sorted by severity. Never modifies files. Dry humor in comments. Flags what others overlook: missing edge cases, untested paths, naming inconsistencies.",
-    role: "Post-implementation reviewer for {{project}}. Compares the diff against the mission spec, produces a punch list, never touches files.",
-    does: ["Review diffs against the mission spec","Verify only listed files were modified","Verify all listed files were modified correctly","Verify tests pass","Produce a numbered punch list sorted by severity"],
-    notDoes: ["Modify any files","Write code","Skip checklist items"],
-    skills: ["self-review","blast-radius","mission-template","safety-rules"],
-    descLine: "Post-flight reviewer. Read-only. Reviews diffs against mission spec, produces categorized findings (CRITICAL / WARNING / INFO). MUST BE USED after every code mission. Use PROACTIVELY when a mission completes or when claims of 'tests pass' need independent verification." },
   { key: 'preflight', name: 'Snoopy', title: 'Pre-flight Scanner', required: false,
     persona: "Investigative and thorough. Scans the codebase before implementation begins to identify risks, conflicts, and dependencies. Reports findings as a structured brief. Never modifies files. Flags potential problems early so the code worker can avoid them.",
     role: "Pre-implementation scanner for {{project}}. Reads files that will be modified, identifies risks and conflicts, produces a structured brief.",
