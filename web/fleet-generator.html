@@ -932,6 +932,8 @@ const OPTIONAL_HOOKS = [
   { key:'save-pre-compact',         label:'Save transcript pre-compaction',       desc:'Lossless dump to ~/.claude/transcripts/ before compaction summarizes.' },
   { key:'verify-post-compact',      label:'Verify context post-compaction',       desc:'Diagnostic note about whether the active mission survived compaction.' },
   { key:'enforce-write-scope',      label:'Enforce mission write scope (WARN)',   desc:'Gates Edit/Write against the active mission\'s "Files to Modify" list. Default WARN; flip to BLOCK by setting CLAUDE_HOOK_MODE=block.' },
+  { key:'enforce-pinned-model',     label:'Refuse a model argument on dispatch (BLOCK)', desc:'The agent file is the model picker. A model argument overrides it, and bare aliases resolve to models the fleet may not run. Measured: one call sent a whole wave to the wrong model.' },
+  { key:'enforce-gate-verdict',     label:'Refuse dispatch under a blocking RED (BLOCK)', desc:'Latches the pre-flight verdict and refuses the next dispatch while a RED stands. Doctrine alone failed: a coordinator read a RED and dispatched anyway.' },
   { key:'prompt-memory-curation',   label:'Prompt memory curation at session end',desc:'Nudges the agent to write a learning note when the session was substantive.' }
 ];
 
@@ -2538,6 +2540,21 @@ error.** It reads as the safe choice and it is not: the model spends its
 context on scaffolding it does not need, then has less left for the work,
 and starts doing the work itself rather than dispatching.
 
+## Read-only roles do not load writer skills
+
+A gate reads a diff, applies one lens, reports, and dies. It never
+commits, never writes prose for a human, never touches the fleet's own
+configuration. So it does not need the skills that teach those things.
+
+Measured: four such skills — commit identity, house voice, canonical-source
+rules, operator working patterns — were **3,800 words loading on every
+dispatch** of agents that could never use them. Across a wave of a dozen
+gate calls, that is a novel's worth of context bought and thrown away.
+
+The generator already scopes skills by role. If you add skills by hand,
+keep the split: committers carry commit identity, roles that write for a
+human carry voice, everything read-only carries neither.
+
 ## If you do not have a Fable-class model
 
 You do not need one. Step 5 has a model-family picker and the default
@@ -2644,6 +2661,21 @@ one instead and lost the ability to assert on structure.
 Name the conformances, the boundary cases, and the exact wrong answers you
 are guarding against. A dispatched unit starts with none of your context.
 The brief is the whole world it gets.
+
+## Pass the agent name only. Never pass \`model\`.
+
+The agent file is the model picker. A gate runs on the model its
+frontmatter names because the file says so. A \`model\` argument on the
+dispatch call **overrides the file**, and the bare aliases are traps —
+\`sonnet\` is not a model, it is an alias that resolves to whatever the
+harness currently maps it to, which may be a model your fleet does not run.
+
+Measured: one coordinator passed \`model: 'sonnet'\` on five dispatches
+and every gate and coder in the wave ran on the wrong model while every pin
+said otherwise. The suites passed. Nobody noticed until a token audit.
+
+A hook refuses this if you enable it, because the doctrine alone was not
+enough — the coordinator that did it had read the rule.
 
 ## Verify a fact before you anchor it
 
@@ -5718,6 +5750,291 @@ cat <<EOF
 - If context feels incomplete, re-read the active mission file and check git log.
 EOF
 `;
+  if (key === 'enforce-pinned-model') return `#!/usr/bin/env python3
+"""PreToolUse on Agent -- refuse a \`model\` argument.
+
+In this fleet the agent FILE is the model picker. smythe4 runs sonnet-4-6
+because its frontmatter says so. A \`model\` argument on the Agent call
+overrides that, and the bare aliases are traps: \`sonnet\` is not a model, it
+resolves to Sonnet 5, which your fleet may not run.
+
+Measured 2026-09-11: one coordinator passed model:'sonnet' on five
+dispatches and every gate and coder in the wave ran on Sonnet 5 -- the
+model that crashed the gauntlet -- while every pin said otherwise.
+
+This is certain from the tool call alone, so it is refused rather than
+advised. The only thing to pass is subagent_type.
+
+JSON protocol like the other enforce hooks: permissionDecision and reason
+on stdout, exit 0. Fails open on every error path.
+"""
+
+import json
+import sys
+
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        sys.exit(0)
+    if data.get("tool_name") != "Agent":
+        sys.exit(0)
+    ti = data.get("tool_input") or {}
+    if "model" not in ti:
+        sys.exit(0)
+
+    target = str(ti.get("subagent_type") or ti.get("agentType") or "?")
+    passed = str(ti.get("model"))
+    print(json.dumps({"permissionDecision": "deny", "reason": (
+        f"REFUSED: \`model: '{passed}'\` on a dispatch of {target}. "
+        f"Never pass model. The agent file is the model picker -- {target} "
+        f"runs the model its frontmatter names, and a model argument "
+        f"OVERRIDES that. Bare aliases are traps: 'sonnet' resolves to "
+        f"Sonnet 5, which your fleet may not run; one coordinator passed it "
+        f"on five dispatches and every gate and coder in the wave ran on the "
+        f"model that crashed the gauntlet. Re-issue with subagent_type only."
+    )}))
+    sys.exit(0)
+
+
+main()
+`;
+  if (key === 'latch-gate-verdict') return `#!/usr/bin/env python3
+"""SubagentStop — latch a blocking gate verdict so it can be enforced.
+
+The gates return their verdict to the coordinator as a return value. That is
+advice: a coordinator can read a RED and dispatch anyway, and one did — it
+decided units A and B were unaffected, dispatched both, and asked for a
+ruling on C.
+
+This makes the verdict a FACT the harness holds rather than a claim the
+coordinator carries. It writes a latch file; the PreToolUse counterpart
+reads it and blocks the next dispatch.
+
+What SubagentStop provides, confirmed against captured payloads:
+
+    agent_type              "smythe4", "adams5" — empty for some spawns
+    last_assistant_message  the gate's final message, verdict included
+    agent_transcript_path   fallback when the message is truncated
+    session_id, cwd
+
+Latches are per session and per worktree, so two waves on one machine do
+not gate each other.
+
+Fails open in every path. A broken hook must never break a session — a
+false block is worse than a missed one, because it stops correct work and
+teaches people to disable hooks.
+"""
+
+import json
+import os
+import re
+import sys
+import time
+
+LATCH_DIR = os.path.join(
+    os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
+    "ddfactory", "gates")
+
+# Gates whose verdict is BLOCKING. Others return advice and are not latched.
+BLOCKING = {"smythe4": ("RED",), "adams5": ("FAIL",)}
+
+# The verdict line, not any mention of the word. "VERDICT: RED" and
+# "VERDICT: **FAIL**" both count; "a RED would stop the mission" does not.
+VERDICT_RE = re.compile(
+    r"VERDICT\\s*:?\\s*\\**\\s*(RED|FAIL|GREEN|PASS|AMBER)\\b", re.I)
+
+
+def latch_path(session_id, cwd):
+    safe = "".join(c if c.isalnum() or c in "-_" else "-"
+                   for c in f"{session_id}-{os.path.basename(cwd or '')}")
+    return os.path.join(LATCH_DIR, f"{safe}.json")
+
+
+def verdict_from(text):
+    if not text:
+        return None
+    m = VERDICT_RE.search(text)
+    return m.group(1).upper() if m else None
+
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        return
+
+    agent = (data.get("agent_type") or "").strip()
+    if agent not in BLOCKING:
+        return
+
+    text = data.get("last_assistant_message") or ""
+    v = verdict_from(text)
+
+    # The final message can be truncated or be a summary block. Fall back to
+    # the tail of the agent's own transcript before giving up: a missed RED
+    # is the failure this exists to prevent.
+    if v is None:
+        tp = data.get("agent_transcript_path")
+        if tp and os.path.exists(tp):
+            try:
+                with open(tp, errors="ignore") as fh:
+                    tail = fh.readlines()[-60:]
+                v = verdict_from("".join(tail))
+            except Exception:
+                pass
+
+    if v is None:
+        return
+
+    blocking = v in BLOCKING[agent]
+    try:
+        os.makedirs(LATCH_DIR, mode=0o700, exist_ok=True)
+        p = latch_path(data.get("session_id", ""), data.get("cwd", ""))
+        state = {}
+        if os.path.exists(p):
+            try:
+                state = json.load(open(p))
+            except Exception:
+                state = {}
+        state[agent] = {
+            "verdict": v,
+            "blocking": blocking,
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "agent_id": data.get("agent_id", ""),
+        }
+        with open(p, "w") as fh:
+            json.dump(state, fh)
+    except Exception:
+        return
+
+    if blocking:
+        # additionalContext, the same field prompt-memory-curation.sh uses.
+        # The earlier version printed bare stdout on the assumption that
+        # SubagentStop injects it; that was never verified, and an
+        # unverified injection is worse than none because the block then
+        # looks like the only thing working.
+        print(json.dumps({"additionalContext":
+            f"[GATE] {agent} returned {v}. This is BLOCKING. "
+            f"A {v} from {agent} means one of the MISSION's premises is in "
+            f"doubt, not just the unit it was found in — the decomposition "
+            f"was cut from the same text, so units that look clear are "
+            f"suspect too. "
+            f"Dispatch nothing. Tear down any child worktree already cut. "
+            f"RETURN with the verdict, its file:line anchors, and the ruling "
+            f"you need. A PreToolUse hook will refuse the next dispatch "
+            f"until this clears."}))
+
+
+main()
+`;
+  if (key === 'enforce-gate-verdict') return `#!/usr/bin/env python3
+"""PreToolUse on Agent — refuse a dispatch while a blocking verdict stands.
+
+The counterpart to latch-gate-verdict.py. That one records what a gate
+returned; this one makes it binding.
+
+Why this exists rather than more doctrine. The agent file already said a RED
+stops the whole mission. A coordinator read a RED, decided two of its three
+units were unaffected, dispatched both, and asked for a ruling on the third.
+The doctrine was right, and it was advice.
+
+The one dispatch this MUST NOT block is the fix. A coordinator that cannot
+re-run a gate or send a remediation is stuck with no way forward, which is
+worse than the failure being enforced. So the gates and the last-resort
+coder are always allowed through.
+
+Exit codes, per the hook contract:
+    0  allow
+    2  deny, and stderr goes back to the model as the reason
+
+Fails OPEN on every error. A hook that wrongly blocks correct work is worse
+than one that misses, because the first teaches people to disable hooks.
+"""
+
+import json
+import os
+import sys
+
+LATCH_DIR = os.path.join(
+    os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
+    "ddfactory", "gates")
+
+# Always permitted while a verdict stands: the gates themselves, so the
+# coordinator can re-verify, and the escalation and root-cause agents, so a
+# remediation can run. Blocking those would leave no path forward.
+ALWAYS_ALLOWED = {"smythe4", "adams5", "ace5", "kinsta4"}
+
+CLEAR = "GATE_CLEARED"
+
+
+def latch_path(session_id, cwd):
+    safe = "".join(c if c.isalnum() or c in "-_" else "-"
+                   for c in f"{session_id}-{os.path.basename(cwd or '')}")
+    return os.path.join(LATCH_DIR, f"{safe}.json")
+
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        sys.exit(0)
+
+    if data.get("tool_name") != "Agent":
+        sys.exit(0)
+
+    ti = data.get("tool_input") or {}
+    target = str(ti.get("agentType") or ti.get("subagent_type") or "").strip()
+    if target in ALWAYS_ALLOWED:
+        sys.exit(0)
+
+    # An explicit token in the brief clears the latch. This is the escape
+    # hatch for the case the hook cannot judge: the operator has ruled and the
+    # coordinator is acting on it. Deliberate by construction, which is why it
+    # is a literal token rather than a flag.
+    if CLEAR in json.dumps(ti):
+        try:
+            os.remove(latch_path(data.get("session_id", ""), data.get("cwd", "")))
+        except Exception:
+            pass
+        sys.exit(0)
+
+    try:
+        p = latch_path(data.get("session_id", ""), data.get("cwd", ""))
+        if not os.path.exists(p):
+            sys.exit(0)
+        state = json.load(open(p))
+    except Exception:
+        sys.exit(0)
+
+    blocking = [(a, s) for a, s in state.items()
+                if isinstance(s, dict) and s.get("blocking")]
+    if not blocking:
+        sys.exit(0)
+
+    agent, s = blocking[0]
+    reason = (
+        "REFUSED: %s returned %s at %s and that verdict is blocking. "
+        "A %s means one of the mission's premises is false. The plan is what "
+        "the units were cut from, so the decomposition is suspect INCLUDING "
+        "the units that look clear. "
+        "Dispatch nothing. Tear down any child worktree already cut. RETURN "
+        "with the verdict, its file:line anchors, and the ruling you need. "
+        "%s, adams5, ace5 and kinsta4 stay dispatchable so you can re-verify "
+        "or remediate. If the operator has ruled and you are acting on that "
+        "ruling, include the token %s in the brief."
+        % (agent, s.get("verdict"), s.get("at"), s.get("verdict"), agent, CLEAR)
+    )
+    # The JSON protocol, matching gate-push.sh and enforce-write-scope.sh:
+    # decision and reason as data on stdout, exit 0. Separates the ruling
+    # from the explanation instead of relying on stderr conventions.
+    print(json.dumps({"permissionDecision": "deny", "reason": reason}))
+    sys.exit(0)
+
+
+main()
+`;
   if (key === 'enforce-write-scope') return `#!/usr/bin/env bash
 # PreToolUse Edit/Write hook — enforces write scope against the
 # active mission's "Files to Modify" list.
@@ -5941,6 +6258,11 @@ function genSettingsJSON() {
   if (state.prefs.hooks['log-subagent-stop'])       settings.hooks.push({ event:'SubagentStop',  pattern:'**',                       command:'.claude/hooks/log-subagent-stop.sh' });
   if (state.prefs.hooks['save-pre-compact'])        settings.hooks.push({ event:'PreCompact',    pattern:'**',                       command:'.claude/hooks/save-pre-compact.sh' });
   if (state.prefs.hooks['verify-post-compact'])     settings.hooks.push({ event:'PostCompact',   pattern:'**',                       command:'.claude/hooks/verify-post-compact.sh' });
+  if (state.prefs.hooks['enforce-pinned-model']) settings.hooks.push({ event:'PreToolUse', pattern:'Agent', command:'[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/enforce-pinned-model.py" ] || exit 0; python3 "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/enforce-pinned-model.py"' });
+  if (state.prefs.hooks['enforce-gate-verdict']) {
+    settings.hooks.push({ event:'SubagentStop', pattern:'**',    command:'[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/latch-gate-verdict.py" ] && python3 "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/latch-gate-verdict.py" || true' });
+    settings.hooks.push({ event:'PreToolUse',   pattern:'Agent', command:'[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/enforce-gate-verdict.py" ] || exit 0; python3 "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/enforce-gate-verdict.py"' });
+  }
   if (state.prefs.hooks['enforce-write-scope'])     settings.hooks.push({ event:'PreToolUse',    pattern:'Edit|Write|MultiEdit',     command:'.claude/hooks/enforce-write-scope.sh' });
   if (state.prefs.hooks['prompt-memory-curation'])  settings.hooks.push({ event:'Stop',          pattern:'**',                       command:'.claude/hooks/prompt-memory-curation.sh' });
   return JSON.stringify(settings, null, 2) + '\n';
@@ -7136,9 +7458,16 @@ function buildZipEntries() {
   entries.push({ path: `${root}/cli/rules/hazmat.md`,      content: genRuleHazmat() });
 
   // Hooks
+  // A hook's extension follows its shebang, and a hook can carry a
+  // companion file that has no picker entry of its own.
+  const PY_HOOKS = new Set(['enforce-pinned-model', 'enforce-gate-verdict', 'latch-gate-verdict']);
+  const COMPANIONS = { 'enforce-gate-verdict': ['latch-gate-verdict'] };
   for (const h of OPTIONAL_HOOKS) {
     if (state.prefs.hooks[h.key]) {
-      entries.push({ path: `${root}/cli/hooks/${h.key}.sh`, content: hookScript(h.key), executable: true });
+      for (const k of [h.key, ...(COMPANIONS[h.key] || [])]) {
+        const ext = PY_HOOKS.has(k) ? 'py' : 'sh';
+        entries.push({ path: `${root}/cli/hooks/${k}.${ext}`, content: hookScript(k), executable: true });
+      }
     }
   }
 
