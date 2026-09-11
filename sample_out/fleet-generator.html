@@ -203,6 +203,14 @@
       </div>
     </div>
     <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
+        <h3 class="font-bold text-stone-700 mb-1 text-sm">Waiting on agents</h3>
+        <p class="text-xs text-stone-400 mb-4">A coordinator that polls pays a full context re-read every turn. Claude Code only.</p>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="useWatcher" oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+          <span class="text-sm text-stone-700">Stall watcher &mdash; <span class="text-stone-400">blocks in one call until an agent finishes or genuinely stalls, instead of a poll loop</span></span>
+      </label>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
       <h3 class="font-bold text-stone-700 mb-1 text-sm">Memory</h3>
       <p class="text-xs text-stone-400 mb-4">Persistent memory across sessions. Requires <a href="https://github.com/codedaptive/mootx01-ce" target="_blank" rel="noopener" class="underline text-amber-700">MOOTx01</a>.</p>
       <label class="flex items-center gap-3 cursor-pointer">
@@ -356,6 +364,180 @@ const FAMILY_TIERS = {
     security: 'fable',    architect: 'fable',  math: 'fable'
   }
 };
+
+// The stall watcher is Claude-Code-specific: it reads that harness's
+// transcript layout and detects completion from stop_reason. Emitting it
+// for another target would ship a file that silently never fires, which is
+// worse than shipping nothing. The no-poll RULE is emitted either way,
+// because it holds regardless of harness.
+const WATCH_AGENT_PY = `#!/usr/bin/env python3
+"""Block until a dispatched agent finishes or genuinely stalls.
+
+The point is arithmetic. A coordinator that polls -- one shell command per
+turn, "still running, waiting" -- pays a full context re-read every turn. On
+a 1M-window model that is about 450k cache tokens per poll; one measured
+wait cost 5.8M across 13 turns of doing nothing.
+
+This blocks INSIDE one tool call. One call for the whole wait, one context
+re-read instead of thirteen.
+
+    watch-agent.py <agent-id> [--stall 12] [--max 540]
+
+Exit codes, so the caller can branch without parsing:
+
+    0   DONE     the agent finished normally
+    3   STALLED  no transcript write for --stall minutes AND no build
+                 process running in its worktree
+    4   TIMEOUT  --max reached with the agent still alive and working;
+                 call again, it is not a problem
+
+TIMEOUT exists because the Bash tool has its own ceiling. Set --max just
+under it. A 45-minute gate becomes a handful of calls rather than ninety
+polls, and each TIMEOUT is a turn that says "still working" for the price
+of one re-read.
+
+On STALL it does not guess. Three signals have to agree, because the
+expensive error here is a false stall: a coordinator that believes a live
+agent died dispatches a duplicate onto the same files, and that has
+happened three times in one wave. A quiet agent is almost never a dead one
+-- it is usually thinking or waiting on a build.
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+PROJECTS = Path.home() / ".claude" / "projects"
+
+
+def find_transcript(agent_id):
+    """Newest transcript matching the id. Accepts a full or partial id."""
+    hits = sorted(PROJECTS.glob(f"*/*/subagents/agent-{agent_id}*.jsonl"),
+                  key=lambda p: p.stat().st_mtime, reverse=True)
+    if not hits:
+        hits = sorted(PROJECTS.glob(f"*/*/subagents/*{agent_id}*.jsonl"),
+                      key=lambda p: p.stat().st_mtime, reverse=True)
+    return hits[0] if hits else None
+
+
+def tail_record(path):
+    """Last parseable JSON record, reading only the end of the file."""
+    try:
+        size = path.stat().st_size
+        with path.open("rb") as fh:
+            fh.seek(max(0, size - 65536))
+            lines = fh.read().decode("utf-8", "ignore").splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if line.startswith("{"):
+                try:
+                    return json.loads(line)
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    return None
+
+
+def finished(rec):
+    """A completed agent's last record carries stop_reason: end_turn."""
+    if not rec:
+        return False
+    m = rec.get("message") or {}
+    return m.get("stop_reason") == "end_turn"
+
+
+def worktree_of(rec):
+    return (rec or {}).get("cwd") or ""
+
+
+def build_running(cwd):
+    """Is a compiler working for this worktree?
+
+    The signal that matters, because a transcript can be silent for twenty
+    minutes while swift or cargo grinds. Matching on the worktree path keeps
+    a sibling wave's build from counting as this one's.
+    """
+    if not cwd:
+        return False
+    try:
+        out = subprocess.run(["ps", "-axo", "args="], capture_output=True,
+                             text=True, timeout=10).stdout
+    except Exception:
+        return True          # cannot tell -> assume alive, never false-stall
+    base = os.path.basename(cwd.rstrip("/"))
+    for line in out.splitlines():
+        if base and base in line and any(
+                t in line for t in ("swift-frontend", "swift-build", "swiftc",
+                                    "cargo", "rustc", "make", "xctest",
+                                    "swift-test")):
+            return True
+    return False
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("agent_id")
+    ap.add_argument("--stall", type=int, default=12,
+                    help="minutes of transcript silence before considering a stall")
+    ap.add_argument("--max", type=int, default=540,
+                    help="seconds to block before returning TIMEOUT; set just "
+                         "under the Bash tool ceiling")
+    ap.add_argument("--interval", type=int, default=20)
+    a = ap.parse_args()
+
+    t = find_transcript(a.agent_id)
+    if not t:
+        print(f"UNKNOWN: no transcript for {a.agent_id}. It may not have "
+              f"started yet — do not treat this as a stall.")
+        sys.exit(4)
+
+    started = time.time()
+    while True:
+        rec = tail_record(t)
+        if finished(rec):
+            mins = (time.time() - started) / 60
+            print(f"DONE: {t.name} finished (waited {mins:.1f} min). "
+                  f"Read its return and continue.")
+            sys.exit(0)
+
+        idle = (time.time() - t.stat().st_mtime) / 60
+        if idle >= a.stall:
+            cwd = worktree_of(rec)
+            if build_running(cwd):
+                # Silent but compiling. This is the case that produced three
+                # false death calls in one wave.
+                pass
+            else:
+                print(f"STALLED: {t.name} — no transcript write for "
+                      f"{idle:.0f} min and no build process in {cwd or '?'}.\\n"
+                      f"Before acting: check whether it already committed "
+                      f"(\`git -C {cwd or '<worktree>'} log --oneline -3\`), "
+                      f"because a finished agent looks the same from here.\\n"
+                      f"Do NOT dispatch onto the same files — report it.")
+                sys.exit(3)
+
+        if time.time() - started >= a.max:
+            print(f"TIMEOUT: still working — last write {idle:.1f} min ago"
+                  f"{', build running' if build_running(worktree_of(rec)) else ''}"
+                  f". Not a problem; call again to keep waiting.")
+            sys.exit(4)
+
+        time.sleep(a.interval)
+
+
+main()
+`;
+
+function useWatcher() {
+  const el = document.getElementById('useWatcher');
+  const t = document.querySelector('input[name="target"]:checked');
+  return !!(el && el.checked) && (!t || t.value === 'claude' || t.value === 'both');
+}
 
 function modelFamily() {
   const el = document.querySelector('input[name="family"]:checked');
@@ -2162,6 +2344,33 @@ result, then teardown.
         |
         +-- commit, report
 \`\`\`
+
+## Waiting is not polling
+
+The harness tells you when a dispatched agent finishes. You do not need to
+check.
+
+A poll loop — one command per turn, "still running, waiting" — looks like
+diligence and is the most expensive idle in a fleet. Measured on a
+coordinator waiting for its gate: 13 turns, 5.8M cache tokens, about 450k
+per poll, because a large-window agent re-reads its whole context every
+turn. Output per turn was 31, the lowest of any coordinator that day, so
+every health check read it as fine.
+
+**Dispatch and stop.** The next thing you do is respond to what came back.
+
+If you must wait inside a turn, block once rather than looping. Whatever
+you use for that, it has to satisfy two things before calling a stall:
+
+**Silence is not a stall.** A transcript can go quiet for twenty minutes
+while a compiler grinds. Three false death calls in one wave came from
+reading silence as death.
+
+**A finished agent looks identical to a dead one from outside.** Check
+whether it already committed before concluding anything.
+
+Get either wrong and a coordinator dispatches a duplicate onto files
+another unit is holding, which costs more than the wait it was avoiding.
 
 ## All coders finish before any merge
 
@@ -6818,6 +7027,14 @@ function buildZipEntries() {
   entries.push({ path: `${root}/install.sh`, content: genInstallSh(), executable: true });
   entries.push({ path: `${root}/README.md`, content: genReadme() });
   entries.push({ path: `${root}/fleet-config.json`, content: genFleetConfig() });
+
+  // The stall watcher, only when asked for and only for Claude Code. It reads
+  // that harness's transcript layout; emitting it elsewhere ships a file that
+  // silently never fires, which is worse than shipping nothing.
+  if (useWatcher()) {
+    entries.push({ path: `${root}/.claude/scripts/watch-agent.py`,
+                   content: WATCH_AGENT_PY, executable: true });
+  }
 
   // Workshop mode: bundle fleet-generator.html (and optionally GUIDE.html)
   // at the root so the workshop dir IS the editable copy of the generator.
