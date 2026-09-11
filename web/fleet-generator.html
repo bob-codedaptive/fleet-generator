@@ -202,6 +202,20 @@
         </label>
       </div>
     </div>
+    <div class="bg-amber-50 rounded-xl border-2 border-amber-300 p-5 mb-5">
+      <h3 class="font-bold text-amber-900 mb-1 text-sm">Code graph &mdash; strongly recommended</h3>
+      <p class="text-xs text-amber-800 mb-3">Install <a href="https://github.com/NanoNets/context-graph-engine" target="_blank" rel="noopener" class="underline font-semibold">graft</a> (<code class="text-[11px]">npm i -g @nanonets/graft</code>). MIT, no API key, one command. It is the single largest per-turn saving this fleet design found.</p>
+      <ul class="text-xs text-amber-800 mb-4 space-y-1 list-disc pl-4">
+        <li>Real call edges, not string matches &mdash; answers <em>what reaches this</em>, which grep cannot.</li>
+        <li>One measured coordinator turn: ~261k tokens saved by reading the spans the graph named instead of whole files.</li>
+        <li>4,729 files, 75,448 symbols, 167,853 edges &mdash; built in 55 seconds.</li>
+        <li>Turned three deletion decisions from wrong to right, on live, documented types a text search called dead.</li>
+      </ul>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="useGraft" checked oninput="onPrefInput()" class="w-4 h-4 accent-amber-600">
+        <span class="text-sm text-amber-900">Graph-first search &mdash; <span class="text-amber-700">every agent reads the graph before the text, and stops rather than guessing when there is no graph</span></span>
+      </label>
+    </div>
     <div class="bg-white rounded-xl border border-stone-200 p-5 mb-5">
         <h3 class="font-bold text-stone-700 mb-1 text-sm">Waiting on agents</h3>
         <p class="text-xs text-stone-400 mb-4">A coordinator that polls pays a full context re-read every turn. Claude Code only.</p>
@@ -916,6 +930,7 @@ const OPTIONAL_SKILLS = [
   { key:'merge-conflicts', label:'Resolving merge conflicts', desc:'Resolve by intent from each side. Never abort.' },
   { key:'handoff',         label:'Session handoff',           desc:'Agent-written handoff before a compact.' },
   { key:'plan-capture',    label:'Plan capture',              desc:'File an approved plan before it is lost.' },
+  { key:'graft',            label:'Graph-first search',        desc:'Read the code graph before the text. The largest per-turn saving found.' },
   { key:'wave-fanout',      label:'Running a wave',           desc:'Child worktrees, merge then gate, three coders max.' },
   { key:'escalation-ladder', label:'Escalation ladder',        desc:'A wrong unit is usually a wrong brief. Fix that first.' },
   { key:'model-tiers',     label:'Model tiers (R/O/W)',       desc:'Per-role models. Why a model class implies a file shape.' },
@@ -2322,6 +2337,75 @@ landed without the standard spawns, someone skipped a step.
 };
 
 const OPTIONAL_CLI_SKILLS = {
+  'graft': {
+    desc: "Search the code graph before the text. Ask, callers, grep, skeleton, in that order. What to do when there is no graph.",
+    use: "Any question about code: how does X work, who calls Y, what does deleting Z break. Before every rg. Before opening a file to read it. When a blast radius is needed.",
+    body: `# graft — the code graph
+
+A tree-sitter code graph over the repository. Real call edges, not string
+matches. It refreshes itself against the working tree before answering, so
+it describes the code as it is now including uncommitted edits.
+
+Install once: \`npm i -g @nanonets/graft\`. Build once per worktree:
+\`graft build\` — 4,729 files in 55 seconds, no API key.
+
+## The order. Every time.
+
+\`\`\`bash
+graft ask "<question>" --source      # the declaration, with its code
+graft callers SYMBOL                 # who calls, references, imports it
+graft callers SYMBOL -d 2            # transitive — the blast radius
+graft grep "<regex>"                 # exhaustive, grouped by symbol
+graft skeleton <file>                # every signature, ~1/10th the tokens
+\`\`\`
+
+Then, and only then, \`Read\` — with a line range, for the span graft
+named. Not the whole file.
+
+\`rg\` is for prose, config, schema strings, and repos with no graph.
+
+## Why the order matters more than it looks
+
+Every turn re-reads your whole context. The cost of a session is turns
+multiplied by context, not the size of any one report. Reading a 2,000-line
+file to find one function puts 2,000 lines into every turn that follows.
+Reading the 40 lines graft named puts 40.
+
+Measured on one coordinator turn: ~261k tokens saved. That is the
+difference between a wave that fits in a window and one that compacts
+mid-mission.
+
+## What a graph answers that text cannot
+
+**What else reaches this.** \`rg\` finds the string. \`graft callers\`
+finds the edge — including dynamic dispatch and implements-protocol hops a
+regex cannot follow. Three deletion decisions in one wave were wrong on
+text search and right on the graph, all on live, documented types.
+
+**The three traps**, each of which has cost real work:
+
+- **Zero callers is a question, not a verdict.** graft drops ambiguous
+  cross-file edges rather than guess, so a name defined in more than one
+  place reports "no indexed callers" while being called fine. Confirm
+  every zero-caller hit with \`graft grep\` before calling anything dead.
+- **Outbound reachability is not exclusivity.** \`--direction out\`
+  answers what X reaches, not what else reaches X. A delete list built from
+  the outbound closure alone treats reachable-from-dead as dead.
+- **A graph result reads as rigorous because it is mechanical.** A
+  hand-built list invites a second look; a tool-produced one does not. That
+  is backwards — the tool states its own limits, and the limits are where
+  the live edges hide.
+
+## When there is no graph
+
+**Stop.** Do not fall back to reading files. A gate with no graph returns
+RED with "no graph in worktree"; a coder with no graph asks the coordinator
+rather than guessing at a blast radius. A worktree without a graph is a
+worktree someone forgot to \`graft build\`, and the fix is one command, not
+an afternoon of \`rg\`.
+`
+  },
+
   'wave-fanout': {
     desc: "How a wave actually runs: child worktrees per coder, all finish before any merge, gates on the combined result. And why the dispatch tool depends on whether you are a main session or a subagent.",
     use: "Running a wave. Deciding how many units to cut a mission into. A dispatch failed with a missing tool. Merging parallel work back together. Deciding whether to gate per unit or once at the end.",
@@ -7313,6 +7397,20 @@ fi
 
 echo ""
 echo "Fleet installed to $REPO"
+
+# graft: the code graph every agent in this fleet is told to read before
+# the text. MIT, no API key. Without it the agents stop rather than guess,
+# so a fleet with no graph is a fleet that returns RED a lot.
+if command -v graft >/dev/null 2>&1; then
+  echo "Building the code graph (graft build) ..."
+  (cd "$REPO" && graft build . >/dev/null 2>&1) && echo "  graph built" || echo "  graft build failed; run it by hand"
+else
+  echo ""
+  echo "  graft is not installed. Strongly recommended:"
+  echo "    npm i -g @nanonets/graft && cd $REPO && graft build ."
+  echo "  https://github.com/NanoNets/context-graph-engine"
+  echo "  The agents read the graph before the text; without it they stop."
+fi
 echo "Agents: $(ls "$SCRIPT_DIR/cli/agents/" | wc -l | tr -d ' ')"
 echo "Skills: $(ls "$SCRIPT_DIR/cli/skills/" | wc -l | tr -d ' ')"
 echo ""
