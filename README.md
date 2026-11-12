@@ -3,7 +3,7 @@
 # fleet-generator
 
 ### A multi-agent coding fleet, generated from one HTML file.
-**Update for the official Prompting guideslines**
+**Update for the official Prompting guidelines**
 https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5
 https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5
 https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5
