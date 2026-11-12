@@ -1,7 +1,8 @@
 # Six Forbidden Responses to Blast Radius
 
-When the worker hits a RESCOPE_REQUIRED, the WRONG response is one
-of these six. Each is a CRITICAL finding in post-flight.
+When the worker hits a RESCOPE_REQUIRED, the wrong response is one
+of these six. Each is a severity 2 finding in post-flight, which
+FAILs the review.
 
 ## 1. Bridge / shim helpers
 

@@ -1,9 +1,9 @@
 ---
 name: subagent-orchestration
 description: >-
-  Standard subagent flow for fleet-generator — when Woodstock spawns Snoopy for pre-flight, when to spawn Marvin for review, and when specialist reviewers (Dogbert, Cathy, Odie) get pulled in. Always-active doctrine.
+  Standard subagent flow for fleet-generator: when Woodstock starts Snoopy for pre-flight, when it starts Marvin for review, how a FAIL is reworked, and when the specialists are pulled in. Always-active doctrine.
 when_to_use: >-
-  Always active. Read at session start. Trigger phrases: spawn, subagent, Task tool, pre-flight, post-flight, review, who reviews this, when to call the reviewer, when to spawn the architect, standard flow, orchestrate, hand off.
+  Always active. Read at session start. Trigger phrases: spawn, subagent, Agent tool, pre-flight, post-flight, review, who reviews this, when to call the reviewer, when to start the architect, standard flow, orchestrate, hand off, rework.
 status: active
 tags: [skill]
 updated: 2026-11-12
@@ -11,125 +11,105 @@ updated: 2026-11-12
 
 # Subagent Orchestration — Standard Flow
 
-The fleet has multiple agents. They aren't decoration — they fire
-naturally at standard checkpoints during a mission. The point of
-this skill is so Woodstock (the main coder) and Hobbes (the
-orchestrator) PULL IN the right specialists without waiting to be
-told.
+The fleet's agents fire at fixed checkpoints during a mission. This skill
+is how Woodstock (the code worker) and Hobbes (the orchestrator) pull
+in the right one without waiting to be told.
 
 ## Who is on the team
 
-- **Hobbes** — orchestrator (planner, mission author)
-- **Woodstock** — code worker (main coder, this is YOU when you're
-  implementing)
-- **Snoopy** — pre-flight scanner (read-only)
-- **Marvin** — post-flight reviewer (read-only)
-- **Calvin** — architect (design review, read-only)
-- **Dogbert** — security reviewer (read-only)
-- **Cathy** — accessibility reviewer (read-only)
-- **Odie** — performance reviewer (read-only)
-- **Linus** — doc writer
+| Agent | Role | Model | Writes |
+|---|---|---|---|
+| Hobbes (`hobbes`) | Orchestrator | Claude Opus 5.5, medium | yes |
+| Bilby (`bilby`) | Coordinator | Claude Opus 5.5, medium | yes |
+| Woodstock (`woodstock`) | Code Worker | Claude Opus 5.5, medium | yes |
+| Snoopy (`snoopy`) | Pre-flight Scanner | Claude Haiku 5.5, medium | read-only |
+| Marvin (`marvin`) | Post-flight Inspector | Claude Haiku 5.5, medium | read-only |
+| Agatha (`agatha`) | Submission Gate | Claude Haiku 5.5, high | read-only |
+| Calvin (`calvin`) | Architect | Claude Opus 5.5, medium | read-only |
+| Ace (`ace`) | Last-resort Coder | Claude Opus 5.5, xhigh | yes |
+| Ada (`ada`) | Numeric Specialist | Claude Opus 5.5, xhigh | read-only |
+| Sherlock (`sherlock`) | Root-cause Investigator | Claude Opus 5.5, medium | read-only |
+| Escher (`escher`) | Visual Consistency Reviewer | Claude Sonnet 5.5, medium | read-only |
+| Linus (`linus`) | Doc Writer | Claude Sonnet 5.5, medium | yes |
+| Dogbert (`dogbert`) | Security Reviewer | Claude Haiku 5.5, high | read-only |
+| Cathy (`cathy`) | Accessibility Reviewer | Claude Sonnet 5.5, medium | read-only |
+| Odie (`odie`) | Performance Reviewer | Claude Sonnet 5.5, medium | read-only |
 
-(Whichever of these is enabled in this fleet — others may be off.)
+Only the agents enabled in this fleet are listed. Each runs the model
+its own file names; do not pass a model when you start one.
 
-## How spawning works
+## How starting an agent works
 
-The main coder spawns subagents using the Task tool with
-`subagent_type=<lowercase-name>`. Subagents are read-only by
-default (except Woodstock and Linus, who write to specific lanes).
+Start one with the Agent tool and `subagent_type=<lowercase-name>`. Its
+last message is its return; read it before you go on. Start agents in
+the same message only when their work is independent. When you resume an
+agent (to re-review, say), send it a message rather than starting a new
+one: it keeps what it already read.
 
-Spawn one subagent at a time unless the queries are independent. Read
-their reports before continuing.
+## The worker's flow
 
-## Worker's standard execution order
+1. **Read the mission end to end**, and the files under Read First.
+2. **Start Snoopy** with the mission's file list. It returns
+   VERDICT: GREEN, AMBER or RED, the test commands that cover the change,
+   and a touch list of comments and docs the change will make stale. RED
+   stops the mission until what it names is fixed or ruled on.
+3. **If the mission touches existing code, run `blast-radius`** and
+   commit the report first.
+4. **Implement Part by Part.** Each Part gets its `→ verify:` check (a
+   build or one targeted test) and its own commit. Run `pre-commit`
+   before each commit.
+5. **Run the tests once**, when every Part is in: the commands Snoopy
+   listed plus your new tests. Paste the command and the last lines of
+   its output.
+6. **Run `self-review`.**
+7. **Start Marvin** with the mission and the pasted output. It returns
+   VERDICT: PASS, PASS WITH FINDINGS or FAIL, with file:line findings on
+   one severity scale (1 and 2 block, 3 does not; see `gate-procedures`).
+8. **On FAIL**, fix what it names, run the tests that cover the fix, and
+   resume the same reviewer. After the third FAIL on the same Part, stop
+   and report both positions.
+9. **Start the specialists whose triggers fired** (table below).
+10. **Report done**: the verdict, the test output, the commits.
 
-When Woodstock starts a mission, the flow is:
+Steps 2 and 7 happen on every mission that changes code. A small change
+is the most common reason given for skipping them, and the judgment of
+whether a change is small belongs to the reviewer.
 
-1. **Read the mission file end-to-end.** Absorb every section.
-2. **Read referenced skills.** Particularly `pre-commit`,
-   `self-review`, and (if touching existing code) `blast-radius`.
-3. **Spawn Snoopy (pre-flight scan).** "Scan files in 'Files to
-   Modify' and report risks." Snoopy returns GREEN, AMBER or RED.
-4. **Evaluate the brief.** If RED, fix or escalate before coding.
-5. **If touching existing code: run `blast-radius`.** Produce the
-   Blast Radius Report; commit it as the first commit of the work.
-6. **Implement Part by Part.** Each Part = one logical change = one
-   commit. Run the test runner after each step.
-7. **Run `pre-commit`** before every commit.
-8. **Run `self-review`** after the final commit.
-9. **Spawn Marvin (post-flight review).** "Review the diff against
-   the mission spec." Marvin returns categorized findings
-   (CRITICAL / WARNING / INFO).
-10. **Address Marvin's findings.** Fix CRITICALs; document
-    WARNINGs that won't be fixed; INFO is informational.
-11. **Re-spawn Marvin** until Marvin says PASS.
-12. **For specialist concerns, spawn the matching reviewer:**
-    - Security-touching change → Dogbert
-    - UI / accessibility change → Cathy
-    - Hot path / perf-sensitive change → Odie
-    - User-facing behavior change → Linus updates the docs
-13. **Declare done.**
+## The orchestrator's flow
 
-Steps 3, 9, and 11 are NOT optional for non-trivial missions. They
-happen automatically. The audit trail shows whether they ran.
-
-## Orchestrator's standard flow
-
-When Hobbes drafts a mission:
-
-1. **Investigate the codebase.** Read relevant files; understand
-   the problem.
-2. **For non-trivial design choices, spawn Calvin.** "Review
-   the proposed approach for tradeoffs and second-order effects."
-   Calvin produces a written design review. Recommendations only —
-   the human decides.
-3. **Address Calvin's findings** in the mission's Design Notes
-   section.
-4. **Author the mission file** following the `mission-template`
-   skill.
-5. **Hand off to Woodstock** with the mission file content.
+1. **Investigate the codebase.** Read the files the work touches, and the
+   ones near them.
+2. **For a non-trivial design choice, start Calvin** for a written
+   design review. It recommends; the human decides.
+3. **Author the mission** with the `mission-template` skill.
+4. **Hand it to Woodstock**, or to the coordinator when the mission
+   cuts into more than one unit.
 
 ## Specialist triggers
 
-Spawn a specialist as soon as the trigger fires. Don't batch them
-to the end.
+Start a specialist as soon as its trigger fires.
 
-| Specialist | Spawn when |
+| Agent | Start when |
 |---|---|
-| Snoopy | Mission spec arrives, BEFORE coding starts |
-| Marvin | After the final commit of a mission |
-| Calvin | Designing anything that touches shared primitives, cross-system boundaries, or sets a new pattern others will follow |
-| Dogbert | Touching auth, user data, dependency upgrades, URL handlers, credentials, network |
-| Cathy | Any UI mission |
-| Odie | Touching hot paths, query layers, render paths, allocation-heavy code |
-| Linus | User-visible behavior changed |
+| Snoopy | A mission arrives, before any edit |
+| Marvin | After the mission's last commit |
+| Calvin | A design touches shared primitives or cross-system boundaries, or sets a pattern others will follow |
+| Dogbert | The change touches authentication, user data, dependencies, URL handlers, paths, credentials or the network |
+| Cathy | A UI change adds or changes interactive elements |
+| Odie | The change touches hot paths, query layers, render paths, or allocation-heavy code |
+| Linus | User-visible behaviour changed |
+| Sherlock | A unit failed review twice, or a test set will not go green |
+| Ace | After Sherlock, for a unit that failed twice with a corrected brief |
 
-## What the worker does NOT do
-
-- Don't skip the pre-flight scan because "it's a small change."
-  Snoopy is fast; the audit trail wants the run.
-- Don't skip the reviewer because "I checked my own work."
-  Self-review is required; reviewer is the second pair of eyes.
-- Don't spawn three reviewers in parallel just because they're
-  available. Spawn the ones whose triggers actually fired.
-- Don't ignore reviewer findings because they slow you down. The
-  reviewer flagged it for a reason; address or document.
-
-## What the orchestrator does NOT do
-
-- Don't write code. Mission files only.
-- Don't decide architecture unilaterally. Recommend; the human
-  decides.
-- Don't skip Calvin because "I think I know the right answer."
-  If a real design choice exists, Calvin reviews it.
+Start only the ones whose triggers fired: three reviewers started because
+they are available cost three reviews and find nothing the right one
+would not.
 
 ## Why this exists
 
-Without this doctrine, the worker tends to do everything alone. The
-specialists exist for a reason — each one catches a class of
-mistakes the worker is bad at catching. Standard flow makes sure
-the right eyes look at the right code.
+Without it, the worker does everything alone. Each specialist catches a
+class of mistake the worker is bad at catching in its own work.
 
-The audit-log hooks (`log-subagent-start`, `log-subagent-stop`)
-make subagent spawns visible. If the audit log shows a mission
-landed without the standard spawns, someone skipped a step.
+The audit-log hooks (`log-subagent-start`, `log-subagent-stop`) make
+every start visible. A mission that landed without the standard starts
+shows in the log.

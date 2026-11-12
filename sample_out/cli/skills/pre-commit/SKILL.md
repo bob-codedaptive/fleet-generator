@@ -11,9 +11,9 @@ updated: 2026-11-12
 
 # Pre-Commit Verification
 
-Before each commit. Most items are a glance. The test item is the tests
-that cover this Part, not the whole suite: the full test command runs once,
-at the end of the mission. If any item fails, fix it before committing.
+Before each commit. Most items are a glance. The test item applies to the
+mission's last commit, after the one test run; an earlier Part needs only
+its → verify: check. If any item fails, fix it before committing.
 
 ## 1. Am I in the right place?
 
@@ -32,9 +32,10 @@ Run the project's build or lint command.
 - [ ] Zero build errors
 - [ ] Zero lint errors
 
-## 3. Do tests pass?
+## 3. Do tests pass? (the mission's last commit)
 
-This is a verification gate, not a checkbox.
+This is a verification gate, not a checkbox. For an earlier Part, the
+check is its → verify: line.
 
 - [ ] The test runner was actually invoked (not skipped)
 - [ ] Exit code is 0

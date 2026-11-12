@@ -2,7 +2,7 @@
 
 These patterns appear when scope pressure tempts the worker into a
 shortcut. Reject them in pre-commit; Marvin catches them in
-post-flight as CRITICAL findings.
+post-flight as severity 2 findings, which FAIL the review.
 
 ## 1. Bridge / shim helpers
 

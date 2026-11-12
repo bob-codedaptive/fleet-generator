@@ -12,7 +12,8 @@ updated: 2026-11-12
 # Test-Driven Development
 
 Any time you are writing or modifying production code in fleet-generator
-where a test harness exists. RIGID — follow exactly.
+where a test harness exists. Follow the cycle in order: skipping RED is
+the failure it exists to prevent.
 
 ## When this skill applies
 
@@ -56,17 +57,16 @@ implementation — not the test.
 Extract helpers. Rename variables. Reduce duplication. Run the
 runner after every change. Tests stay green throughout refactoring.
 
-### Step 4: COMMIT
+### Step 4: COMMIT at the Part boundary
 
-One test + one implementation + one refactor = one commit.
-
-```
-feat(<scope>): <behavior> — N tests passing
-```
+A cycle runs the one test you are working on, never the suite. Commit
+when the Part is done (see `pre-commit`); the tests run once, at the end
+of the mission. Paste the RED run and the GREEN run in your report: the
+reviewer reads them to see the test can fail.
 
 ### Step 5: REPEAT
 
-Next behavior → next test → next implementation → next commit.
+Next behavior → next test → next implementation.
 
 ## What NOT to do
 

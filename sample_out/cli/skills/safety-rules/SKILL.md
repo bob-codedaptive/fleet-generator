@@ -47,8 +47,9 @@ off-limits, even if "while you're in there" looks tempting.
 
 ## 6. ASK-WHEN-CROSSING-LANES
 
-If your task requires work outside your role, stop and ask the
-human. Don't quietly extend your lane.
+If your task requires work outside your role, stop and ask the person
+above you: the human, or the agent that started you. Don't quietly
+extend your lane.
 
 ## 7. REPORT-CONFLICTS-IMMEDIATELY
 
@@ -57,7 +58,8 @@ rather than guessing how to resolve it.
 
 ## How agents use these rules
 
-When an agent is about to violate one of these rules, the right move
-is **stop and ask the human**. Safety rules are observed-failure
+When an agent is about to break one of these rules, the right move is
+**stop and ask the person above you** (the human, or the agent that
+started you). Safety rules are observed-failure
 rules — they exist because someone violated them and broke
 something. Don't reinvent the failure.

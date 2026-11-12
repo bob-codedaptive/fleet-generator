@@ -89,4 +89,4 @@ If anything appears, stop and remove it.
 - Prohibited patterns: none
 ```
 
-Hand off to Marvin.
+Hand off to Marvin, with the test output you pasted.

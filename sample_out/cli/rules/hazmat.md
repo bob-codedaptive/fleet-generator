@@ -44,8 +44,9 @@ creep is how partial migrations ship.
 
 ## 6. ASK-WHEN-CROSSING-LANES
 
-If a task requires work outside your role, stop and ask the human.
-Don't quietly extend your lane. The orchestrator does not commit
+If a task requires work outside your role, stop and ask the person
+above you: the human, or the agent that started you. Don't quietly
+extend your lane. The orchestrator does not commit
 code; the worker does not author missions; reviewers do not modify
 files.
 
@@ -57,8 +58,9 @@ than guessing how to resolve it.
 
 ## How agents use these rules
 
-When an agent is about to violate one of these rules, the right move
-is **stop and ask the human**. The cost of asking is low. The cost of
+When an agent is about to break one of these rules, the right move is
+**stop and ask the person above you** (the human, or the agent that
+started you). The cost of asking is low. The cost of
 violating one of these rules is high enough that the rule exists.
 
 ## Updating the rules

@@ -55,8 +55,10 @@ For per-agent commit identity, see the `agent-commits` skill.
 git push origin <branch>
 ```
 
-Never force-push to `main` or `develop`.
-Never push without verifying tests.
+Push only when your role or the mission says so; otherwise the human
+lands the work. Do not force-push `main` or `develop`: others have
+built on them. Do not push untested work: the push is where it reaches
+everyone else.
 
 ## Cleanup after merge
 
@@ -68,13 +70,13 @@ git push origin --delete <branch>
 See [references/branch-conventions.md](references/branch-conventions.md)
 for naming details.
 
-## Never do these
+## Do not do these, and why
 
-- Never commit directly to `main`
-- Never force-push shared branches
-- Never commit generated files (`build/`, `dist/`, `node_modules/`)
-- Never commit API keys or credentials
-- Never use `--no-verify` to skip hooks
+- Commit directly to `main`: work lands through a branch so it can be reviewed
+- Force-push a shared branch: it rewrites history others have built on
+- Commit generated files (`build/`, `dist/`, `node_modules/`): they churn every diff
+- Commit API keys or credentials: a pushed secret stays in history
+- Use `--no-verify`: the hooks are the checks; a skipped hook is a skipped check
 
 ## Worktree usage
 

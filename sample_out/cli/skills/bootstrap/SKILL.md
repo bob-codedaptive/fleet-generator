@@ -64,7 +64,7 @@ because one step didn't complete.
 
 ## When bootstrap is skipped
 
-Bootstrap is NOT skipped because:
+Bootstrap is not skipped because:
 
 - "I just did this last session" — sessions don't share memory
 - "I know the state from the conversation" — the conversation may be

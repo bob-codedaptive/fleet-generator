@@ -1,7 +1,7 @@
 ---
 name: canonical-skill-source
 description: >-
-  MANDATORY before writing ANY agent system content on fleet-generator — manifests, skills, rules, hooks, settings. Enforces the single canonical source location and the one-way deployment direction.
+  Read before writing agent system content on fleet-generator (manifests, skills, rules, hooks, settings). Enforces the single canonical source location and the one-way deployment direction.
 when_to_use: >-
   Writing a SKILL.md, creating an agent manifest, adding a rule file, adding a hook script, modifying .claude/ contents. Trigger phrases: add a skill, create a rule, new agent, update the manifest, canonical source, single source of truth, sync, deploy agents.
 status: active
@@ -59,7 +59,7 @@ Idempotent: re-running with no changes produces zero diff.
 Ask yourself:
 
 1. Am I writing to the canonical source location? → Proceed.
-2. Am I writing to a repo's `.claude/` directly? → STOP. Write to
+2. Am I writing to a repo's `.claude/` directly? → Stop, and write to
    the canonical source instead, then deploy.
 3. Am I creating a new skill? → Create it at
    `<canonical>/skills/<name>/SKILL.md`, then deploy.
@@ -75,4 +75,5 @@ to the canonical source and let the deployment distribute.
 
 ## Exceptions
 
-None. There are no exceptions to this rule.
+None in normal work. If the canonical source cannot be reached, do not
+write to `.claude/` as a stopgap: say what you would change and ask.

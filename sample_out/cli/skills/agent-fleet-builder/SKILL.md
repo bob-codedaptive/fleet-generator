@@ -30,8 +30,11 @@ grade; B-grade categories drag but don't block.
   `tools`, `model`, `memory` (and `disallowedTools` when
   needed).
 - Recurring-shape subagents declare `initialPrompt`.
-- Reasoning-heavy subagents declare `effort` deliberately (default
-  may not be optimal for low-reasoning lanes).
+- Every subagent declares `effort` deliberately; higher is not better for
+  every seat, so measure it.
+- A role's text and every skill it preloads agree. A contradiction is
+  followed both ways.
+- Agent names used in skills and hooks are the names of real agents.
 - Tool restrictions use the `Agent(...)` allowlist syntax.
 - Memory scope is correct: `project` for fleet agents, `user` for
   cross-project knowledge, `local` for unsynced personal content.

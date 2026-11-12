@@ -48,6 +48,17 @@ the agent does and doesn't do, which skills it auto-loads, and the
 
 To add an agent, see [references/adding-an-agent.md](references/adding-an-agent.md).
 
+### `MODELS`, `ROSTER`, `EFFORT`, `PROFILE` and `modelAdapt()`
+
+One agent file per role, at the model on its card. `MODELS` holds the
+seven model IDs; `ROSTER` the measured default model and effort per role
+and vendor; `EFFORT` the effort on any other model; `PROFILE` the kind
+of seat (session, lead, coder, writer, reviewer, reader).
+`modelAdapt(role, model, f)` adds that model's text blocks and, for Haiku,
+moves preloads to on demand (`HAIKU_KEEP`). A role's `skills` are
+preloaded and its `load` list is named for loading on demand; every
+skill either names is shipped (`roleSkillKeys()`).
+
 ### `CLI_SKILLS` (mandatory, always shipped)
 
 Object map of skill key → `{ desc, use, body, refs }`. The body is
@@ -136,9 +147,12 @@ node /tmp/fleet_e2e_v2.mjs
 
 If either fails, the edit is wrong. Fix before committing.
 
+After a change to a role, a skill or the model tables, also generate
+every role on every model and read a few. Each file names its model and
+effort, and every skill it names is in the bundle.
+
 ## File size discipline
 
-The file has grown organically. Aim to keep it under 5,500 lines. If
-you're approaching that, audit for redundant skill content rather
-than splitting the file — splitting breaks the single-file deployment
+The file is past 8,000 lines. Before adding to it, audit for redundant
+skill content rather than splitting the file — splitting breaks the single-file deployment
 property that makes this work on file://.

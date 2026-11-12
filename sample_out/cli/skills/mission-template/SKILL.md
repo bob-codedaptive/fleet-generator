@@ -54,8 +54,9 @@ The `→ verify:` line is required on every Part except the last
 1. Read the mission file end-to-end
 2. Read any files in "Read First"
 3. If "Blast Radius Scope" is present, run the `blast-radius` skill
-4. For each Part: implement → run tests → run `pre-commit` → commit
-5. After the final Part: run `self-review` → declare done
+4. For each Part: implement → its `→ verify:` check → `pre-commit` → commit
+5. After the final Part: the tests pre-flight listed plus the new ones,
+   once → `self-review` → post-flight review → done
 
 ## What the mission does NOT contain
 
@@ -67,7 +68,7 @@ The `→ verify:` line is required on every Part except the last
 ## Examples
 
 See [references/examples.md](references/examples.md) for two worked
-mission files: a Tier 1 primitive-touch and a Tier 3 net-new feature.
+mission files: a Tier 1 primitive-touch and a Tier 2 bounded feature.
 
 ## Rules
 

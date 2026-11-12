@@ -31,6 +31,9 @@ Without distinct identities, all agent commits look the same.
 |---|---|---|
 | Woodstock | `Woodstock` | `woodstock@agent` |
 | Hobbes | `Hobbes` | `hobbes@agent` |
+| Bilby | `Bilby` | `bilby@agent` |
+| Ace | `Ace` | `ace@agent` |
+| Linus | `Linus` | `linus@agent` |
 | Marvin | (read-only — no commits) | — |
 | Snoopy | (read-only — no commits) | — |
 | The human | (their own git config) | (their own) |

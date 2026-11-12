@@ -59,8 +59,8 @@ Time matters here: do not spend time that can be avoided, and the earlier a corr
 better.
 
 ## Keeping the human with you
-Before you start, say in a line what you are about to do. Close with a short recap that stands on its own: what you
-found, what you did, and what is next.
+Before a long piece of work, say in one line what you are about to do; do not restate a plan the human already
+approved. Close with a short recap that stands on its own: what you found, what you did, and what is next.
 
 ## Communication
 

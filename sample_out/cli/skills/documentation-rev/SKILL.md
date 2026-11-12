@@ -77,5 +77,8 @@ new ADR that supersedes the old one.
 ## Post-flight enforcement
 
 Marvin verifies in post-flight that any behavior-changing mission
-shipped a corresponding doc edit. Missing doc edit → CRITICAL
-finding → merge blocked.
+shipped a corresponding doc edit. Missing doc edit → severity 2
+finding → the review FAILs.
+
+When a doc line is wrong, change the fewest words that make it true:
+the wrong number or word, not the paragraph.

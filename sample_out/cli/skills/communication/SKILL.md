@@ -28,23 +28,28 @@ fleet-generator.
 - Specific over general: file:line refs over "in the file"
 - Cite, don't paraphrase, when summarizing existing docs
 
+## Write for a reader with little context
+
+Whoever reads your report has not seen your tool calls or the files you
+opened. Put the key point first, use plain words in full sentences, and
+do not use a term you made up during the work.
+
 # Commit cadence
 
-Complete the work. Run the touched tests once. Commit. Hand off.
+Commit each Part after its `→ verify:` check. Run the tests once, when the
+work is done. Hand off.
 
-**The commit is free; the test run bolted to it is not.** A task that
-commits after every unit re-proves code it already proved, once per
+**The commit is free; the test run bolted to it is not.** A task that runs
+the suite before every commit re-proves code it already proved, once per
 commit. That is the single largest repeat spend in most workflows and it
 buys nothing: agents do not roll back to a mid-run commit, they edit
-forward, and the branch survives a crash whether or not the work was
-committed.
+forward.
 
-Commit whenever you have just tested green. That is normally once. A
-second commit after review findings are fixed is fine, because the review
-required a test run anyway. Eight commits means eight test runs.
+So a Part's check is cheap (a build, one targeted test), and the tests
+pre-flight listed run once, at the end. A second run after review
+findings are fixed is fine: the review required it. Eight test runs for
+eight commits is the failure.
 
-The evidence that a test actually gates the change - failing before the
-fix, passing after - belongs in the completion report, which records both
-results explicitly. It does not need to be a commit sequence.
-
-
+The evidence that a test gates the change (failing before the fix,
+passing after) belongs in the completion report, which records both runs.
+It does not need to be a commit sequence.

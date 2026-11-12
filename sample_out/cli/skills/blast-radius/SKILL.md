@@ -40,12 +40,13 @@ protocol.
 Before writing any production code:
 
 ```bash
-# Run the test suite. Capture the pass count.
+# Run the tests pre-flight listed. Capture the pass count.
 <your-test-runner> 2>&1 | tail -5
 ```
 
-If tests don't pass at mission start, STOP. Tests must pass at the
-baseline. Fix in a separate mission first.
+If they do not pass at the start, stop before writing code and report
+it: every later result would be ambiguous. With a coordinator, it starts
+the root-cause investigator; otherwise the fix is a separate mission.
 
 ### Step 1: Identify every symbol being changed
 
@@ -72,7 +73,7 @@ Every grep hit gets one of three classifications:
   Requires written justification.
 - **RESCOPE_REQUIRED** — must update, but doing so expands the
   mission beyond its sanctioned scope. **The mission stops.** Surface
-  to the human with a rescope request.
+  it to the person above you with a rescope request.
 
 The RESCOPE_REQUIRED classification is the escape valve. The wrong
 move is to silence the issue with a bridge or shim — see

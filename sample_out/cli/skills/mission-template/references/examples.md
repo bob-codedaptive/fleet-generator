@@ -49,7 +49,6 @@ In `src/auth/validation.ts`, handle the undefined case.
 Update `user.test.ts` to cover the undefined case.
 
 **Commit:** `test(auth): cover optional email`
-→ verify: full test suite green
 
 ## Test Requirements
 - New test: User with no email validates successfully
@@ -65,7 +64,7 @@ Update `user.test.ts` to cover the undefined case.
 - [ ] No call sites broken outside the listed files
 ```
 
-## Example 2 — Tier 3: net-new feature
+## Example 2 — Tier 2: a new endpoint, bounded by the routes module
 
 ```markdown
 # Mission: Add health-check endpoint
@@ -73,7 +72,8 @@ Update `user.test.ts` to cover the undefined case.
 ## Context
 
 Add a `/health` endpoint that returns 200 OK with build info.
-All-new files. No edits to existing code.
+Two new files, and one line in the existing route index to register it.
+Bounded by the routes module.
 
 ## Files to Modify
 
@@ -116,7 +116,6 @@ test('GET /health returns 200', async () => { ... });
 In `src/routes/index.ts`, add `router.get('/health', healthHandler)`.
 
 **Commit:** `feat(routes): register /health`
-→ verify: `curl localhost:3000/health` returns 200
 
 ## Test Requirements
 - New test: GET /health returns 200 with status field

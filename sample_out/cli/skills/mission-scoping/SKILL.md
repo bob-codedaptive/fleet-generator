@@ -64,8 +64,8 @@ Examples that do NOT:
 
 ## Pre-flight gate
 
-When the orchestrator authors a mission and the pre-flight scanner
-checks it, the gate is:
+When the orchestrator authors a mission and the submission gate or
+pre-flight checks it, the gate is:
 
 - [ ] ≤ 3 existing files (Tier 1), OR
 - [ ] UI-bounded with named component, ≤ 6 files (Tier 2), OR
