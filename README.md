@@ -3,14 +3,19 @@
 # fleet-generator
 
 ### A multi-agent coding fleet, generated from one HTML file.
-**Update for the official Prompting guidelines**
-https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5
-https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5
-https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5
-https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2
-https://promptessor.com/blog/gpt-6-1-sol-prompting-guide
-https://promptessor.com/blog/gpt-6-1-terra-prompting-guide
-https://promptessor.com/blog/gpt-6-astra-prompting-guide
+
+**Updated for the official prompting guidelines**
+
+| Model | Guide | Source |
+|---|---|---|
+| Claude Haiku 5.5 | [Claude Haiku 5.5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5) | Anthropic |
+| Claude Sonnet 5.5 | [Claude Sonnet 5.5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5) | Anthropic |
+| Claude Opus 5.5 | [Claude Opus 5.5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5) | Anthropic |
+| Claude Fable 5.2 | [Claude Fable 5.2 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2) | Anthropic |
+| GPT-6.1 Sol | [GPT-6.1 Sol prompting guide](https://promptessor.com/blog/gpt-6-1-sol-prompting-guide) | promptessor |
+| GPT-6.1 Terra | [GPT-6.1 Terra prompting guide](https://promptessor.com/blog/gpt-6-1-terra-prompting-guide) | promptessor |
+| GPT-6 Astra | [GPT-6 Astra prompting guide](https://promptessor.com/blog/gpt-6-astra-prompting-guide) | promptessor |
+
 </div>
 
 <div align="center">
