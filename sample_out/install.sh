@@ -58,6 +58,20 @@ fi
 
 echo ""
 echo "Fleet installed to $REPO"
+
+# graft: the code graph every agent in this fleet is told to read before
+# the text. MIT, no API key. Without it the agents stop rather than guess,
+# so a fleet with no graph is a fleet that returns RED a lot.
+if command -v graft >/dev/null 2>&1; then
+  echo "Building the code graph (graft build) ..."
+  (cd "$REPO" && graft build . >/dev/null 2>&1) && echo "  graph built" || echo "  graft build failed; run it by hand"
+else
+  echo ""
+  echo "  graft is not installed. Strongly recommended:"
+  echo "    npm i -g @nanonets/graft && cd $REPO && graft build ."
+  echo "  https://github.com/NanoNets/context-graph-engine"
+  echo "  The agents read the graph before the text; without it they stop."
+fi
 echo "Agents: $(ls "$SCRIPT_DIR/cli/agents/" | wc -l | tr -d ' ')"
 echo "Skills: $(ls "$SCRIPT_DIR/cli/skills/" | wc -l | tr -d ' ')"
 echo ""
@@ -65,5 +79,5 @@ echo "Chat skills are zipped in chat/ — drag them into claude.ai → Settings 
 echo ""
 echo "To run a mission:"
 echo "  cd $REPO"
-echo "  claude --agent woodstock --model opus --dangerously-skip-permissions"
+echo "  claude --agent woodstock --model claude-opus-5-5 --dangerously-skip-permissions"
 echo "  # paste mission content"

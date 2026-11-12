@@ -6,7 +6,7 @@ when_to_use: >-
   Asking which doc is authoritative. Designating a canonical document. Resolving a conflict between two docs. Trigger phrases: source of truth, canonical, authoritative, locked decision, canon, which doc wins.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Source of Truth

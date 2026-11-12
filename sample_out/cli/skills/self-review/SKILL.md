@@ -1,12 +1,12 @@
 ---
 name: self-review
 description: >-
-  Final-commit quality gate before Garfield runs — mission spec match, scope check, formatting-noise revert, accessibility check, orphan-code detection, secrets scan.
+  Final-commit quality gate before Marvin runs — mission spec match, scope check, formatting-noise revert, accessibility check, orphan-code detection, secrets scan.
 when_to_use: >-
   After the final commit of a mission and before signaling completion. Verifying the diff matches the mission's 'Files to Modify' list. Sweeping for bridge helpers, orphan deprecation markers, and same-symbol TODOs. Final pass before declaring done. Trigger phrases: self-review, run self-review, final-commit verification, scope creep, formatting noise, orphan code, bridge helper, secrets check, check my work.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Self-Review Protocol
@@ -89,4 +89,4 @@ If anything appears, stop and remove it.
 - Prohibited patterns: none
 ```
 
-Hand off to Garfield.
+Hand off to Marvin.

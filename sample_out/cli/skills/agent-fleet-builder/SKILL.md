@@ -6,7 +6,7 @@ when_to_use: >-
   Auditing the fleet against the A-grade rubric. Designing a refactoring wave. Deciding which mechanism (subagent / skill / hook / rule / memory) fits a need. Reviewing whether a fleet has reached A-grade. Trigger phrases: A-grade fleet, fleet audit, fleet refactor, wave methodology, agent fleet quality, rubric, what mechanism fits, how do I improve this fleet.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Agent Fleet Builder
@@ -73,8 +73,9 @@ grade; B-grade categories drag but don't block.
 
 ### F — Models and effort
 
-- Model choice matches reasoning needs. Opus for the heavy lifting;
-  Haiku for cheap ops.
+- Each agent's file is written for the model it runs on (see the
+  `model-tiers` skill); moving a role to another model regenerates
+  the file, not just the model line.
 - `effort` is set per agent, not left to default.
 
 ### G — Documentation and discoverability

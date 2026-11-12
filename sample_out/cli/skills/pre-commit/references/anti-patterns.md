@@ -1,7 +1,7 @@
 # Anti-Patterns to Reject Before Committing
 
 These patterns appear when scope pressure tempts the worker into a
-shortcut. Reject them in pre-commit; Garfield catches them in
+shortcut. Reject them in pre-commit; Marvin catches them in
 post-flight as CRITICAL findings.
 
 ## 1. Bridge / shim helpers
@@ -39,5 +39,6 @@ ship partial.
 ## 6. "Tests pass" without proof
 
 A completion claim of "tests pass" with no test-runner output and no
-exit code recorded. Garfield will re-run; if the suite didn't run or
-didn't exit 0, the claim is a CRITICAL finding.
+exit code recorded. Marvin reads the pasted output; a claim with no
+output, or output that shows the suite did not run or did not exit 0, is
+a finding.

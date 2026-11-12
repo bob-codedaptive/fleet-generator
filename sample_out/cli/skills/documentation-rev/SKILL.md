@@ -6,7 +6,7 @@ when_to_use: >-
   Authoring or revising a documentation file. Reviewing whether a behavior-changing mission shipped its doc edit. Bumping a doc's version. Trigger phrases: documentation rev, doc revision, same-commit doc edit, rev bump, README update, behavior-changing mission.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Documentation Rev Discipline
@@ -76,6 +76,6 @@ new ADR that supersedes the old one.
 
 ## Post-flight enforcement
 
-Garfield verifies in post-flight that any behavior-changing mission
+Marvin verifies in post-flight that any behavior-changing mission
 shipped a corresponding doc edit. Missing doc edit → CRITICAL
 finding → merge blocked.

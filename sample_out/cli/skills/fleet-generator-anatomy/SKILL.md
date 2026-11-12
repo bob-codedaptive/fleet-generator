@@ -6,7 +6,7 @@ when_to_use: >-
   Editing fleet-generator.html. Adding an agent, skill, hook, or chat skill. Modifying defaults. Tracing why generated content looks the way it does. Trigger phrases: anatomy, where does X live in fleet-generator, how do I add a skill, how do I add an agent, how do I add a hook, edit fleet-generator, ROLES, CLI_SKILLS, OPTIONAL_HOOKS, CHAT_SKILLS, buildZipEntries.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Fleet-Generator Anatomy

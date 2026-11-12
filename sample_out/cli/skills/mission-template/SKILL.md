@@ -6,7 +6,7 @@ when_to_use: >-
   Authoring or reviewing a mission file. Structuring a new mission for the worker. Asking what the worker does step-by-step during execution. Verifying whether a mission follows the template. Trigger phrases: use the mission template, structured per the mission template, mission lifecycle, mission sections, Files to Modify, success criteria, mission header, blast radius scope, write a mission, mission format.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Mission Template

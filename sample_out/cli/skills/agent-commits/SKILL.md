@@ -6,7 +6,7 @@ when_to_use: >-
   Composing a commit. Setting GIT_AUTHOR_NAME or running `git -c user.name=...`. Spawning a subagent that will commit. Auditing git log for robot vs human commits. Trigger phrases: commit identity, commit under <agent>'s identity, audit trail, git log --author, per-commit identity, set identity.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Commit Identity
@@ -31,7 +31,7 @@ Without distinct identities, all agent commits look the same.
 |---|---|---|
 | Woodstock | `Woodstock` | `woodstock@agent` |
 | Hobbes | `Hobbes` | `hobbes@agent` |
-| Garfield | (read-only — no commits) | — |
+| Marvin | (read-only — no commits) | — |
 | Snoopy | (read-only — no commits) | — |
 | The human | (their own git config) | (their own) |
 

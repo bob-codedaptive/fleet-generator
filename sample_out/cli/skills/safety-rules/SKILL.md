@@ -6,7 +6,7 @@ when_to_use: >-
   Always active. Trigger phrases: safety rules, lane discipline, don't overwrite, conflict, in another agent's lane, mission scope is a boundary.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Safety Rules

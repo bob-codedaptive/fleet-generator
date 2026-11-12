@@ -1,12 +1,12 @@
 ---
 name: subagent-orchestration
 description: >-
-  Standard subagent flow for fleet-generator — when Woodstock spawns Snoopy for pre-flight, when to spawn Garfield for review, and when specialist reviewers (Dogbert, Cathy, Odie) get pulled in. Always-active doctrine.
+  Standard subagent flow for fleet-generator — when Woodstock spawns Snoopy for pre-flight, when to spawn Marvin for review, and when specialist reviewers (Dogbert, Cathy, Odie) get pulled in. Always-active doctrine.
 when_to_use: >-
   Always active. Read at session start. Trigger phrases: spawn, subagent, Task tool, pre-flight, post-flight, review, who reviews this, when to call the reviewer, when to spawn the architect, standard flow, orchestrate, hand off.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Subagent Orchestration — Standard Flow
@@ -23,7 +23,7 @@ told.
 - **Woodstock** — code worker (main coder, this is YOU when you're
   implementing)
 - **Snoopy** — pre-flight scanner (read-only)
-- **Garfield** — post-flight reviewer (read-only)
+- **Marvin** — post-flight reviewer (read-only)
 - **Calvin** — architect (design review, read-only)
 - **Dogbert** — security reviewer (read-only)
 - **Cathy** — accessibility reviewer (read-only)
@@ -49,7 +49,7 @@ When Woodstock starts a mission, the flow is:
 2. **Read referenced skills.** Particularly `pre-commit`,
    `self-review`, and (if touching existing code) `blast-radius`.
 3. **Spawn Snoopy (pre-flight scan).** "Scan files in 'Files to
-   Modify' and report risks." Snoopy returns GREEN/YELLOW/RED.
+   Modify' and report risks." Snoopy returns GREEN, AMBER or RED.
 4. **Evaluate the brief.** If RED, fix or escalate before coding.
 5. **If touching existing code: run `blast-radius`.** Produce the
    Blast Radius Report; commit it as the first commit of the work.
@@ -57,12 +57,12 @@ When Woodstock starts a mission, the flow is:
    commit. Run the test runner after each step.
 7. **Run `pre-commit`** before every commit.
 8. **Run `self-review`** after the final commit.
-9. **Spawn Garfield (post-flight review).** "Review the diff against
-   the mission spec." Garfield returns categorized findings
+9. **Spawn Marvin (post-flight review).** "Review the diff against
+   the mission spec." Marvin returns categorized findings
    (CRITICAL / WARNING / INFO).
-10. **Address Garfield's findings.** Fix CRITICALs; document
+10. **Address Marvin's findings.** Fix CRITICALs; document
     WARNINGs that won't be fixed; INFO is informational.
-11. **Re-spawn Garfield** until Garfield says PASS.
+11. **Re-spawn Marvin** until Marvin says PASS.
 12. **For specialist concerns, spawn the matching reviewer:**
     - Security-touching change → Dogbert
     - UI / accessibility change → Cathy
@@ -97,7 +97,7 @@ to the end.
 | Specialist | Spawn when |
 |---|---|
 | Snoopy | Mission spec arrives, BEFORE coding starts |
-| Garfield | After the final commit of a mission |
+| Marvin | After the final commit of a mission |
 | Calvin | Designing anything that touches shared primitives, cross-system boundaries, or sets a new pattern others will follow |
 | Dogbert | Touching auth, user data, dependency upgrades, URL handlers, credentials, network |
 | Cathy | Any UI mission |

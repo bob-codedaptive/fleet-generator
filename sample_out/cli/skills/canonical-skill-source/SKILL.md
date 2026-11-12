@@ -6,7 +6,7 @@ when_to_use: >-
   Writing a SKILL.md, creating an agent manifest, adding a rule file, adding a hook script, modifying .claude/ contents. Trigger phrases: add a skill, create a rule, new agent, update the manifest, canonical source, single source of truth, sync, deploy agents.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Canonical Skill Source

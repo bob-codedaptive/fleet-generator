@@ -86,27 +86,31 @@ which one wins is cheaper than reconciling them later.
 
 ### Model tiers
 
-The generated fleet does not put every agent on one model.
+Each agent runs on the model chosen for its role, and its file is written
+for that model. The wizard's team step picks which vendors you can reach
+(Claude, OpenAI, or both) and shows each agent's model and effort on its
+card; change the model and the file's text changes with it.
 
-| Role | Tier | Why |
+The defaults are the roster measured on the fleet this is modelled on:
+
+| Seat | Default | On OpenAI |
 | --- | --- | --- |
-| Reviewer | top | One pass over a finished diff. Cheap, and the only thing between a plausible-looking change and your main branch. |
-| Orchestrator | top | Pays for itself *if* it dispatches. If it types the code itself, this is the most expensive possible arrangement. |
-| Workers | mid | They receive a brief containing everything they need, so capability buys less here than anywhere else. |
+| Orchestrator, coordinator, worker, architect, root cause | Opus 5.5, medium | GPT-6.1 Sol |
+| Pre-flight, post-flight | Haiku 5.5, medium | GPT-6.1 Terra |
+| Submission gate, security | Haiku 5.5, high | GPT-6.1 Sol |
+| Docs, visual, accessibility, performance | Sonnet 5.5, medium | GPT-6.1 Sol |
+| Numeric specialist, last-resort coder | Opus 5.5, xhigh | GPT-6.1 Sol |
 
-**A model class implies an agent-file shape.** Keep two variants of the
-orchestrator: the full procedural file for the smaller model, and a lean
-one for the capable model. Measured on one identical task across eight
-configurations, the lean file halved the cost of the capable model and
-passed, while making every smaller model more expensive and no better.
+Why one file per model: the vendors' prompting guides disagree on what each
+model needs. Haiku gets a short prompt, skills on demand and written check
+lists; Sonnet is told where to stop; Opus has its bad turn endings named;
+Fable gets the steps that need no approval named; the GPT models get "done
+means shown" and an evidence policy; Astra gets an instruction priority and
+is not offered for the orchestrator. The `model-tiers` skill in every
+bundle has the full table and the lessons behind it.
 
-Running a capable model against the full procedural file is the most
-common setup error. It reads as the safe choice and it is not: the model
-spends context on scaffolding it does not need, has less left for the work,
-and starts doing the work itself rather than dispatching.
-
-Edit `MODEL_TIERS` near the top of the wizard's script block to change the
-defaults.
+Edit `MODELS`, `ROSTER`, `EFFORT` and `modelAdapt` near the top of the
+wizard's script block to change the models, the defaults, or the texts.
 
 ## Optional: persistent memory
 
@@ -137,7 +141,8 @@ fleet-generator/
 
 Everything lives in `web/fleet-generator.html` as JavaScript constants:
 `ROLES` for the agents, `CLI_SKILLS` and `OPTIONAL_CLI_SKILLS` for skill
-bodies, `OPTIONAL_HOOKS` for hooks, `MODEL_TIERS` for the tiers. There is
+bodies, `OPTIONAL_HOOKS` for hooks, `MODELS`, `ROSTER` and `modelAdapt` for the
+models. There is
 no separate source tree: the constants are the source.
 
 `web/SPEC.md` documents the structure and what has to agree with what when

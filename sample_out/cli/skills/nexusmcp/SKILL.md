@@ -6,7 +6,7 @@ when_to_use: >-
   Recording a decision. Querying prior context. Writing a session summary. Recovering from compaction. Trigger phrases: remember this, recall, persistent memory, nexus, knowledge graph, diary, prior decisions, what did we decide.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 > **PREVIEW — NexusMCP launches soon.** This skill describes how the

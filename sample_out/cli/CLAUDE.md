@@ -17,10 +17,16 @@
 ## Team
 
 - **Hobbes** — Orchestrator
+- **Bilby** — Coordinator
 - **Woodstock** — Code Worker
-- **Garfield** — Reviewer
 - **Snoopy** — Pre-flight Scanner
+- **Marvin** — Post-flight Inspector
+- **Agatha** — Submission Gate
 - **Calvin** — Architect
+- **Ace** — Last-resort Coder
+- **Ada** — Numeric Specialist
+- **Sherlock** — Root-cause Investigator
+- **Escher** — Visual Consistency Reviewer
 - **Linus** — Doc Writer
 - **Dogbert** — Security Reviewer
 - **Cathy** — Accessibility Reviewer
@@ -38,7 +44,6 @@ Woodstock is the main coder. Woodstock pulls in subagents at standard
 checkpoints — automatically, every mission. Not after being told.
 
 - **Pre-flight:** Woodstock spawns Snoopy BEFORE coding to scan files for risks.
-- **Post-flight:** Woodstock spawns Garfield AFTER the final commit. Re-spawns until PASS.
 - **Architecture:** Hobbes spawns Calvin for non-trivial design choices BEFORE handing off.
 - **Security:** Woodstock spawns Dogbert when changes touch auth, user data, dependencies, or credentials.
 - **Accessibility:** Woodstock spawns Cathy for any UI mission.

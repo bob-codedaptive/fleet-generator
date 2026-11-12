@@ -45,5 +45,5 @@ Shipped the field. Will document later.
 ```
 
 → Rejected at post-flight. The doc lives next to the code, not
-"later." Garfield bounces the commit; worker amends with the doc
+"later." Marvin bounces the commit; worker amends with the doc
 update.

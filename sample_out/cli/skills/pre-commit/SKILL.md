@@ -6,13 +6,14 @@ when_to_use: >-
   About to run git commit. Mid-mission verification before each Part's commit. Verifying that tests pass with real exit-0. Checking for prohibited bridge / shim / orphan-deprecation patterns. Final check before declaring a Part done. Trigger phrases: ship a commit, land the commit, run the pre-commit checklist, identity check, scope check, anti-pattern detection, formatting noise, type(scope) commit message.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Pre-Commit Verification
 
-Before the commit that ends a unit of work. Normally once per task; see Commit cadence below. Run through this checklist
-mechanically. If any item fails, fix it before committing.
+Before each commit. Most items are a glance. The test item is the tests
+that cover this Part, not the whole suite: the full test command runs once,
+at the end of the mission. If any item fails, fix it before committing.
 
 ## 1. Am I in the right place?
 
@@ -41,9 +42,9 @@ This is a verification gate, not a checkbox.
 - [ ] Zero test failures
 - [ ] Tail output captured to the completion notes (verbatim)
 
-If the test runner does not exit 0, you do not commit. Garfield
-re-verifies this claim in post-flight. Reports claiming tests pass
-without genuine output are CRITICAL findings.
+If the test runner does not exit 0, you do not commit. Marvin
+reads the output you paste and does not re-run the suite, so paste the
+command and its tail. A pass claim with no pasted output is a finding.
 
 ## 4. Is my identity set?
 
@@ -96,20 +97,3 @@ Verify the commit landed with right author and message.
 
 Do NOT commit with a known failure. The checklist exists because
 "fix later" means "never."
-
-## Commit cadence
-
-Complete the work. Run the touched tests once. Commit. Hand off.
-
-**The commit is free; the test run bolted to it is not.** A task that
-commits after every unit re-proves code it already proved, once per
-commit. Agents do not roll back to a mid-run commit, they edit forward,
-and the branch survives a crash whether or not the work was committed.
-
-Commit whenever you have just tested green. That is normally once. A
-second commit after review findings is fine, because the review required a
-test run anyway.
-
-The evidence that a test actually gates the change, failing before the fix
-and passing after, belongs in the completion report. It does not need to
-be a commit sequence.

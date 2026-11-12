@@ -6,7 +6,7 @@ when_to_use: >-
   Creating a branch. Naming a branch. Cleaning up after a merge. Trigger phrases: branch, branch hygiene, one task per branch, cleanup, branch from develop, never commit to main.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Branch Hygiene

@@ -6,7 +6,7 @@ when_to_use: >-
   Mission renames or removes a symbol. Mission changes a function signature. Mission deprecates a method. Mission alters schema fields, enum cases, or shared constants. Trigger phrases: blast radius, MUST_UPDATE, INTENTIONALLY_LEFT, RESCOPE_REQUIRED, rename, signature change, symbol removal, deprecation, migration, orphan deprecation, bridge helper, partial migration, call sites.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Blast Radius Discipline
@@ -87,7 +87,7 @@ template in [references/report-template.md](references/report-template.md).
 ### Step 5: Implement — every MUST_UPDATE site must be touched
 
 When implementation begins, every file listed as MUST_UPDATE must
-appear in the final diff. Garfield verifies this in post-flight.
+appear in the final diff. Marvin verifies this in post-flight.
 
 ## The rule
 

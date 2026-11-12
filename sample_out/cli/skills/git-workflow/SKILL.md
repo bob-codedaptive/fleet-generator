@@ -6,7 +6,7 @@ when_to_use: >-
   Starting or finishing a session in a worktree. Composing a commit message. Configuring a branch. Pushing to remote. Trigger phrases: git workflow, branch from main, never force push, never commit to main, commit message format, type(scope): description, branch naming.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Git Workflow

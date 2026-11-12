@@ -20,6 +20,16 @@
     "orchestrator": {
       "enabled": true,
       "name": "Hobbes",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "coordinator": {
+      "enabled": true,
+      "name": "Bilby",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -28,14 +38,7 @@
     "worker": {
       "enabled": true,
       "name": "Woodstock",
-      "persona": "",
-      "personality": "",
-      "does": "",
-      "notDoes": ""
-    },
-    "reviewer": {
-      "enabled": true,
-      "name": "Garfield",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -44,6 +47,25 @@
     "preflight": {
       "enabled": true,
       "name": "Snoopy",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "postflight": {
+      "enabled": true,
+      "name": "Marvin",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "submission": {
+      "enabled": true,
+      "name": "Agatha",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -52,6 +74,43 @@
     "architect": {
       "enabled": true,
       "name": "Calvin",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "ace": {
+      "enabled": true,
+      "name": "Ace",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "math": {
+      "enabled": true,
+      "name": "Ada",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "rootcause": {
+      "enabled": true,
+      "name": "Sherlock",
+      "model": "",
+      "persona": "",
+      "personality": "",
+      "does": "",
+      "notDoes": ""
+    },
+    "visual": {
+      "enabled": true,
+      "name": "Escher",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -60,6 +119,7 @@
     "docs": {
       "enabled": true,
       "name": "Linus",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -68,6 +128,7 @@
     "security": {
       "enabled": true,
       "name": "Dogbert",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -76,6 +137,7 @@
     "a11y": {
       "enabled": true,
       "name": "Cathy",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -84,6 +146,7 @@
     "perf": {
       "enabled": true,
       "name": "Odie",
+      "model": "",
       "persona": "",
       "personality": "",
       "does": "",
@@ -94,6 +157,7 @@
     "verbosity": 50,
     "uncertainty": "ask",
     "emoji": false,
+    "vendor": "claude",
     "skills": {
       "blast-radius": true,
       "mission-scoping": true,
@@ -120,5 +184,5 @@
       "memory-interface": true
     }
   },
-  "generatedAt": "2026-05-07T02:59:58.142Z"
+  "generatedAt": "2026-11-12T01:16:53.056Z"
 }

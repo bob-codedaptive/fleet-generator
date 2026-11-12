@@ -37,25 +37,48 @@ state = {
   project: { name, desc, root },
   repos: [{ name, branch, path }, ...],
   vocab:  { scope, draft, submit },
-  agents: { <key>: { enabled, name, persona } },
-  prefs:  { verbosity, uncertainty, emoji, skills{}, hooks{}, chatSkills{} },
+  agents: { <key>: { enabled, name, model, persona, personality, does, notDoes } },
+  prefs:  { verbosity, uncertainty, emoji, vendor, skills{}, hooks{}, chatSkills{} },
   quickStart, workshopMode, workshopPayload
 }
 ```
 
-`ROLES` (constant) defines the menu of nine agents, each with: `key`, default `name` (cartoon character), `title`, `required`, `persona` (≤1024), `role`, `does[]`, `notDoes[]`, `skills[]`, `descLine` (manifest frontmatter description with "MUST BE USED" / "Use PROACTIVELY" cues).
+`agents.<key>.model` is a key of `MODELS`, or blank for the roster default.
+`prefs.vendor` is `claude`, `openai` or `both`, and limits the models offered.
 
-| Role | Default | Required | Read-only |
-|---|---|---|---|
-| Orchestrator | Hobbes | ✓ | — |
-| Code Worker | Woodstock | ✓ | — |
-| Reviewer | Garfield | — | ✓ |
-| Pre-flight Scanner | Snoopy | — | ✓ |
-| Architect | Calvin | — | ✓ |
-| Doc Writer | Linus | — | — |
-| Security Reviewer | Dogbert | — | ✓ |
-| Accessibility Reviewer | Cathy | — | ✓ |
-| Performance Reviewer | Odie | — | ✓ |
+`ROLES` (constant) defines the fifteen agents, each with: `key`, default
+`name`, `title`, `required`, `tools[]`, `persona`, `role`, `does[]`,
+`notDoes[]`, `skills[]` (preloaded), `load[]` (named for loading on demand)
+and `descLine` (frontmatter description).
+
+`MODELS` holds the seven model IDs; `ROSTER` the measured default model and
+effort per role and vendor; `EFFORT` the effort for any other model;
+`PROFILE` the kind of seat each role is; `modelAdapt(role, model, f)` adds
+each model's text blocks and, for Haiku, moves preloads to on demand.
+`genAgent(role)` writes one file per enabled role, at its model.
+
+What has to agree: a role's text and every skill it preloads (the models
+follow both); every skill an agent names is shipped (`roleSkillKeys`); the
+gate hooks' agent names come from `agentSlug`, and the gates' first line is
+`VERDICT: ...`, which the latch hook reads.
+
+| Role | Default name | Required | Read-only | Default model |
+|---|---|---|---|---|
+| Orchestrator | Hobbes | ✓ | — | Opus 5.5, medium |
+| Coordinator | Bilby | — | — | Opus 5.5, medium |
+| Code Worker | Woodstock | ✓ | — | Opus 5.5, medium |
+| Pre-flight Scanner | Snoopy | — | ✓ | Haiku 5.5, medium |
+| Post-flight Inspector | Marvin | — | ✓ | Haiku 5.5, medium |
+| Submission Gate | Agatha | — | ✓ | Haiku 5.5, high |
+| Architect | Calvin | — | ✓ | Opus 5.5, medium |
+| Last-resort Coder | Ace | — | — | Opus 5.5, xhigh |
+| Numeric Specialist | Ada | — | ✓ | Opus 5.5, xhigh |
+| Root-cause Investigator | Sherlock | — | ✓ | Opus 5.5, medium |
+| Visual Consistency Reviewer | Escher | — | ✓ | Sonnet 5.5, medium |
+| Doc Writer | Linus | — | — | Sonnet 5.5, medium |
+| Security Reviewer | Dogbert | — | ✓ | Haiku 5.5, high |
+| Accessibility Reviewer | Cathy | — | ✓ | Sonnet 5.5, medium |
+| Performance Reviewer | Odie | — | ✓ | Sonnet 5.5, medium |
 
 ## Output structure
 

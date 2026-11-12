@@ -6,7 +6,7 @@ when_to_use: >-
   Need to answer a question that requires reading many files. The question is exploratory (no edits planned). The main thread is mid-mission and reading 5+ files would burn context. Trigger phrases: dig into, investigate, research, look across files, find examples of, understand the pattern, deep-dive, explore, where is X used.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Deep Research

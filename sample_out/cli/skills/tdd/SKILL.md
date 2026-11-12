@@ -6,7 +6,7 @@ when_to_use: >-
   Implementing or modifying a public function with a test harness. Adding a new behavior. Mission spec calls for test-first work. Trigger phrases: TDD cycle, RED GREEN REFACTOR, write the test first, test-first, test-driven, exit 0, baseline test count.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Test-Driven Development

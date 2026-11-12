@@ -42,7 +42,7 @@ edit. To see what end users see, also open `GUIDE.html`.
 Run the tutorial ladder in order to learn the file structure:
 
 ```
-claude --agent woodstock --model opus --dangerously-skip-permissions
+claude --agent woodstock --model claude-opus-5-5 --dangerously-skip-permissions
 # paste cli/missions/MISSION_TUTORIAL_1_RENAME_WORKER.md
 ```
 

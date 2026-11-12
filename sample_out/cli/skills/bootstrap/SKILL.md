@@ -6,7 +6,7 @@ when_to_use: >-
   Starting a fresh agent session. Recovering after compaction. Asking what to read first. Subagent inheriting cwd from orchestrator. Trigger phrases: bootstrap, session start, run the bootstrap ritual, set cwd, what's in flight, where am I, getting started.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Bootstrap — Session Startup

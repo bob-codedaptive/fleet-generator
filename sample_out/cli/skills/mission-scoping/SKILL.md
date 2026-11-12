@@ -6,7 +6,7 @@ when_to_use: >-
   Authoring a mission. Deciding whether a mission should be split. Pre-flight scanner verifying scope. Worker flagging RESCOPE_REQUIRED mid-mission. Trigger phrases: mission scoping, primitive-touching, Tier 1, Tier 2, Tier 3, ≤3 edits, UI-bounded, net-new, atomic exception, RESCOPE_REQUIRED, split the mission, cap.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Mission Scoping — Tiered Caps
@@ -44,7 +44,7 @@ When a mission only adds new files and edits no existing file, there
 is no cap. Adding 12 new files for a feature is fine.
 
 The mission must explicitly state "all-new files, no edits to
-existing code" and Garfield verifies post-flight.
+existing code" and Marvin verifies post-flight.
 
 ## Atomic exception
 

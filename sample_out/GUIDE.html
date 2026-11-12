@@ -455,7 +455,7 @@
   <line x1="590" y1="100" x2="590" y2="125" stroke="#059669" stroke-width="2" marker-end="url(#arr)"/>
 
   <rect x="440" y="125" width="300" height="44" rx="8" fill="#292524"/>
-  <text x="590" y="152" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#fafaf9">claude --agent &lt;worker&gt; --model opus</text>
+  <text x="590" y="152" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#fafaf9">claude --agent &lt;worker&gt;</text>
 </svg>
 </div>
 
@@ -544,29 +544,34 @@ context for work nobody was doing.</p>
 
 <h2 id="tiers">10 &nbsp;Model Tiers</h2>
 
-<p>The generated fleet no longer puts every agent on one model. Three roles,
-three choices, made together:</p>
+<p>Each agent runs on the model chosen for its role, and its file is written
+for that model. In the team step, pick the vendors you can reach (Claude,
+OpenAI, or both); each agent's card shows its model and effort, and changing
+the model changes the file's text, not just its model line.</p>
 
 <table>
-<tr><th>Role</th><th>Model</th><th>Why</th></tr>
-<tr><td>Reviewer</td><td>top tier</td><td>One pass over a finished diff. Cheap, and the only thing between a plausible-looking change and your main branch.</td></tr>
-<tr><td>Orchestrator</td><td>top tier</td><td>Pays for itself <em>if</em> it dispatches. If it types the code itself it is the most expensive possible arrangement.</td></tr>
-<tr><td>Workers</td><td>mid tier</td><td>They receive a brief containing everything they need, so capability buys less here than anywhere else.</td></tr>
+<tr><th>Seat</th><th>Default</th><th>Why</th></tr>
+<tr><td>Orchestrator, coordinator, worker</td><td>Opus 5.5, medium</td><td>They hold a mission end to end. Raising effort bought less here than fixing the role text did.</td></tr>
+<tr><td>Pre-flight, post-flight</td><td>Haiku 5.5, medium</td><td>On a 22-review replay Haiku at medium matched the reference reviewer more often than at high, and never failed work the reference passed.</td></tr>
+<tr><td>Submission gate, security</td><td>Haiku 5.5, high</td><td>Security at high caught 15 of 19 seeded defects, against 13 at medium.</td></tr>
+<tr><td>Docs, visual, accessibility, performance</td><td>Sonnet 5.5, medium</td><td>They judge prose and screens.</td></tr>
+<tr><td>Numeric specialist, last-resort coder</td><td>Opus 5.5, xhigh</td><td>The top of the effort ladder.</td></tr>
 </table>
 
-<p><b>A model class implies an agent-file shape.</b> Keep two variants of the
-orchestrator: the full procedural file for the smaller model, and a lean one
-for the capable model. Measured on one identical task across eight
-configurations, the lean file halved the cost of the capable model and
-passed, while making every smaller model more expensive and no better.</p>
+<p><b>One file per model.</b> The vendors' prompting guides disagree on what
+each model needs. Haiku gets a short prompt, skills on demand and written
+check lists; Sonnet is told where to stop and to review once; Opus has its
+bad turn endings named; Fable gets the steps that need no approval named;
+the GPT models get "done means shown" and an evidence policy. GPT-6 Astra is
+not offered for the orchestrator.</p>
 
-<p>Running a capable model against the full file is the most common setup
-error. It reads as the safe choice and is not: the model spends context on
-scaffolding it does not need, has less left for the work, and starts doing
-the work itself rather than dispatching.</p>
+<p><b>Role text matters more than the model.</b> The large gains on the
+fleet this is modelled on came from rewriting what a role says, and from
+making sure a role and the skills it preloads never disagree.</p>
 
-<p>Edit <code>MODEL_TIERS</code> near the top of the wizard's script block to
-change the defaults.</p>
+<p>Edit <code>MODELS</code>, <code>ROSTER</code> and <code>modelAdapt</code>
+near the top of the wizard's script block to change the defaults or the
+texts.</p>
 
 <h2>Quick Reference</h2>
 
@@ -575,7 +580,7 @@ change the defaults.</p>
     <p style="font-weight:600; margin-bottom:8px">Launch the Worker (CLI)</p>
 <pre><code>cd ~/dev/my-project
 claude --agent &lt;worker&gt; \
-  --model opus \
+  --model claude-opus-5-5 \
   --dangerously-skip-permissions</code></pre>
     <p style="font-size:0.85rem; color: var(--muted)">Replace <code>&lt;worker&gt;</code> with the lowercase name you gave the worker (default: <code>woodstock</code>). Paste the mission file when prompted.</p>
   </div>
@@ -603,7 +608,7 @@ claude --agent &lt;worker&gt; \
 <tr><td><code>plan-capture</code></td><td>File an approved plan the moment it is approved. A plan lives in the session and nowhere else.</td><td>A plan was just approved. About to commit work that came from a plan.</td></tr>
   <tr><td><code>/scope</code></td><td>Mandatory</td><td>Investigation and planning. Reads files, runs read-only shell, accumulates findings in the Workspace artifact.</td><td>scope mode, investigate, plan, what should we build, figure out what needs to change</td><td>No (read-only)</td></tr>
   <tr><td><code>/draft</code></td><td>Mandatory</td><td>Specification refinement. Markdown artifact for the mission file, HTML/SVG for mockups. Stores the final draft in Workspace.</td><td>draft mode, refine the spec, write the mission, polish it</td><td>No (artifacts only)</td></tr>
-  <tr><td><code>/submit</code></td><td>Mandatory</td><td>Format the draft as a copy-paste mission and give the human the launch command (<code>claude --agent &lt;worker&gt; --model opus --dangerously-skip-permissions</code>).</td><td>submit it, send it, queue it, dispatch it, launch it</td><td>No (you copy/paste)</td></tr>
+  <tr><td><code>/submit</code></td><td>Mandatory</td><td>Format the draft as a copy-paste mission and give the human the launch command (<code>claude --agent &lt;worker&gt; --model claude-opus-5-5 --dangerously-skip-permissions</code>).</td><td>submit it, send it, queue it, dispatch it, launch it</td><td>No (you copy/paste)</td></tr>
   <tr><td><code>/communication</code></td><td>Always-on</td><td>Verbosity, emoji, and uncertainty preferences for chat responses. Mirrors the CLI side.</td><td>(passive — applies to every response)</td><td>No</td></tr>
   <tr><td><code>/bootstrap</code></td><td>Mandatory</td><td>Onboarding flow for a fresh chat. Asks for repo, reads CLAUDE.md / README / git log, queries memory if available, reports state.</td><td>bootstrap, get started, onboard, fresh chat, session start</td><td>No (read-only)</td></tr>
   <tr><td><code>/continuity</code></td><td>Mandatory</td><td>Cross-session handoff. Writes state to memory backend if available; otherwise produces a paste-able HANDOFF PACKET artifact.</td><td>continuity, checkpoint, package a handoff, prepare to switch chats</td><td>Memory backend only</td></tr>

@@ -6,7 +6,7 @@ when_to_use: >-
   Always active. Read at session start and again whenever drafting a response. Trigger phrases: human patterns, working style, how does the human work, how should I phrase a correction, retraction.
 status: active
 tags: [skill]
-updated: 2026-05-07
+updated: 2026-11-12
 ---
 
 # Human Working Patterns

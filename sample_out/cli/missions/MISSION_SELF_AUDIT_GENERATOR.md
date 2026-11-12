@@ -118,7 +118,7 @@ proposed Wave N+1.
 ## Report template
 
 \`\`\`markdown
-# Workshop Audit — Wave N — 2026-05-07
+# Workshop Audit — Wave N — 2026-11-12
 
 ## Probes (raw measurements)
 
